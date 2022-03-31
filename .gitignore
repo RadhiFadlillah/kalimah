@@ -2,6 +2,11 @@
 .vscode/
 config.toml
 
+# Exclude executable
+kalimah
+kalimah-dev
+kalimah.db
+
 # Exclude web dev files
 node_modules/
 web/public/build/
