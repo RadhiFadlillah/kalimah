@@ -1,0 +1,7 @@
+# Exclude config
+.vscode/
+config.toml
+
+# Exclude web dev files
+node_modules/
+web/public/build/
