@@ -11,6 +11,8 @@
 		"typescript": "^4.6.3"
 	},
 	"scripts": {
+		"web-prod": "node build.esbuild.mjs",
+		"web-dev": "node build.esbuild.mjs dev",
 		"go-dev": "go build -o kalimah-dev && ./kalimah-dev start"
 	}
 }

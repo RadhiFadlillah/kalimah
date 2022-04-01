@@ -101,7 +101,7 @@ func (s *Server) GetSurah(w http.ResponseWriter, r *http.Request, ps httprouter.
 	var err error
 	defer markHttpError(w, err)
 
-	var listSurah []Surah
+	listSurah := []Surah{}
 	err = s.DB.Select(&listSurah,
 		`WITH last_word AS (
 			SELECT IFNULL(MAX(last_word), 0) id FROM tracker WHERE id = 1),
@@ -128,7 +128,7 @@ func (s *Server) GetWords(w http.ResponseWriter, r *http.Request, ps httprouter.
 	strSurah := r.URL.Query().Get("surah")
 	surah, _ := strconv.Atoi(strSurah)
 
-	var words []Word
+	words := []Word{}
 	err = s.DB.Select(&words,
 		`WITH last_word AS (
 			SELECT IFNULL(MAX(last_word), 0) id FROM tracker WHERE id = 1)
@@ -152,7 +152,7 @@ func (s *Server) GetAnswers(w http.ResponseWriter, r *http.Request, ps httproute
 	strWord := r.URL.Query().Get("word")
 	word, _ := strconv.Atoi(strWord)
 
-	var answers []string
+	answers := []string{}
 	err = s.DB.Select(&answers,
 		`WITH correct_answer AS (
 			SELECT translation FROM word w WHERE id = ?),

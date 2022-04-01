@@ -15,7 +15,7 @@ func main() {
 	})
 
 	// Execute cmd
-	err := cmd.RootCmd().Execute()
+	err := cmd.RootCmd(assets).Execute()
 	if err != nil {
 		logrus.Fatalln(err)
 	}
