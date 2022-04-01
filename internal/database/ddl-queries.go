@@ -18,3 +18,10 @@ CREATE TABLE IF NOT EXISTS word (
 	PRIMARY KEY (id),
 	CONSTRAINT word_UNIQUE UNIQUE (surah, ayah, position),
 	CONSTRAINT word_surah_FK FOREIGN KEY (surah) REFERENCES surah (id))`
+
+const ddlCreateTracker = `
+CREATE TABLE IF NOT EXISTS tracker (
+	id        INT UNSIGNED NOT NULL,
+	last_word INT UNSIGNED NOT NULL,
+	PRIMARY KEY (id),
+	CONSTRAINT last_word_FK FOREIGN KEY (last_word) REFERENCES word (id))`

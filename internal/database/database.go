@@ -47,6 +47,11 @@ func Open(dbPath string) (db *sqlx.DB, err error) {
 		return nil, err
 	}
 
+	_, err = tx.Exec(ddlCreateTracker)
+	if err != nil {
+		return nil, err
+	}
+
 	// Populate data
 	_, err = tx.Exec(sqlInsertSurah)
 	if err != nil {
@@ -54,6 +59,14 @@ func Open(dbPath string) (db *sqlx.DB, err error) {
 	}
 
 	_, err = tx.Exec(sqlInsertWord)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = tx.Exec(`
+		INSERT INTO tracker (id, last_word)
+		VALUES (1, 0)
+		ON CONFLICT DO NOTHING`)
 	if err != nil {
 		return nil, err
 	}
