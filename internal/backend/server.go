@@ -104,7 +104,7 @@ func (s *Server) GetSurah(w http.ResponseWriter, r *http.Request, ps httprouter.
 	listSurah := []Surah{}
 	err = s.DB.Select(&listSurah,
 		`WITH last_word AS (
-			SELECT IFNULL(MAX(last_word), 0) id FROM tracker WHERE id = 1),
+			SELECT last_word+1 id FROM tracker WHERE id = 1),
 		translated_surah AS (
 			SELECT DISTINCT surah id
 			FROM word, last_word
@@ -131,7 +131,7 @@ func (s *Server) GetWords(w http.ResponseWriter, r *http.Request, ps httprouter.
 	words := []Word{}
 	err = s.DB.Select(&words,
 		`WITH last_word AS (
-			SELECT IFNULL(MAX(last_word), 0) id FROM tracker WHERE id = 1)
+			SELECT last_word id FROM tracker WHERE id = 1)
 		SELECT w.id, ayah, position, arabic,
 			IIF(w.id <= lw.id, translation, '') translation
 		FROM word w, last_word lw

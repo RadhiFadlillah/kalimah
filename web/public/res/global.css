@@ -5,8 +5,8 @@ Colors used here taken from Tailwind palette https://tailwindcolor.com/
 
 /* prettier-ignore */
 :root {
-	--main   : #475569;  /* Blue Gray 600 */
-	--main-bg: #F1F5F9;  /* Blue Gray 100 */
+	--main   : #4D7C0F; /* Lime 700 */
+	--main-bg: #ECFCCB; /* Lime 100 */
 
 	--bg          : #ffffff;  /* White */
 	--bg-secondary: #f9fafb;  /* Cool Gray 50 */
@@ -47,8 +47,8 @@ Colors used here taken from Tailwind palette https://tailwindcolor.com/
 
 /* prettier-ignore */
 .dark {
-	--main   : #CBD5E1;  /* Blue Gray 300 */
-	--main-bg: #1E293B;  /* Blue Gray 800 */
+	--main   : #D9F99D; /* Lime 200 */
+	--main-bg: #3F6212; /* Lime 800 */
 
 	--bg          : #000000;  /* Black */
 	--bg-secondary: #111827;  /* Cool Gray 900 */
