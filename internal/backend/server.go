@@ -1,6 +1,8 @@
 package backend
 
 import (
+	"database/sql"
+	"encoding/json"
 	"fmt"
 	"io/fs"
 	"io/ioutil"
@@ -28,6 +30,10 @@ func (s *Server) Serve(port int) error {
 	router.GET("/", s.ServeIndex)
 	router.GET("/res/*filepath", s.ServeFile)
 	router.GET("/build/*filepath", s.ServeFile)
+	router.GET("/api/surah", s.GetSurah)
+	router.GET("/api/word", s.GetWords)
+	router.GET("/api/answer", s.GetAnswers)
+	router.POST("/api/answer", s.SubmitAnswer)
 
 	router.PanicHandler = func(w http.ResponseWriter, r *http.Request, arg interface{}) {
 		http.Error(w, fmt.Sprintf("unrecovered error: %v", arg), 500)
@@ -85,8 +91,124 @@ func (s *Server) ServeIndex(w http.ResponseWriter, r *http.Request, ps httproute
 
 // ServeFile serves the files.
 func (s *Server) ServeFile(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	err := ServeAssets(w, r, s.Assets, r.URL.Path)
+	err := serveAssets(w, r, s.Assets, r.URL.Path)
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 	}
+}
+
+func (s *Server) GetSurah(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	var err error
+	defer markHttpError(w, err)
+
+	var listSurah []Surah
+	err = s.DB.Select(&listSurah,
+		`WITH last_word AS (
+			SELECT IFNULL(MAX(last_word), 0) id FROM tracker WHERE id = 1),
+		translated_surah AS (
+			SELECT DISTINCT surah id
+			FROM word, last_word
+			WHERE word.id <= last_word.id)
+		SELECT s.id, s.name, s.translation, IIF(ts.id IS NULL, 0, 1) translated
+		FROM surah s
+		LEFT JOIN translated_surah ts ON s.id = ts.id
+		ORDER BY s.id`)
+	if err != nil && err != sql.ErrNoRows {
+		return
+	}
+
+	w.Header().Add("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(&listSurah)
+}
+
+func (s *Server) GetWords(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	var err error
+	defer markHttpError(w, err)
+
+	strSurah := r.URL.Query().Get("surah")
+	surah, _ := strconv.Atoi(strSurah)
+
+	var words []Word
+	err = s.DB.Select(&words,
+		`WITH last_word AS (
+			SELECT IFNULL(MAX(last_word), 0) id FROM tracker WHERE id = 1)
+		SELECT w.id, ayah, position, arabic,
+			IIF(w.id <= lw.id, translation, '') translation
+		FROM word w, last_word lw
+		WHERE surah = ?
+		ORDER BY w.id, ayah, position`, surah)
+	if err != nil && err != sql.ErrNoRows {
+		return
+	}
+
+	w.Header().Add("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(&words)
+}
+
+func (s *Server) GetAnswers(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	var err error
+	defer markHttpError(w, err)
+
+	strWord := r.URL.Query().Get("word")
+	word, _ := strconv.Atoi(strWord)
+
+	var answers []string
+	err = s.DB.Select(&answers,
+		`WITH correct_answer AS (
+			SELECT translation FROM word w WHERE id = ?),
+		wrong_answer AS (
+			SELECT DISTINCT w.translation 
+			FROM word w, correct_answer cw
+			WHERE w.translation NOT LIKE "%"||cw.translation||"%"
+			ORDER BY RANDOM()
+			LIMIT 9),
+		all_answer AS (
+			SELECT * FROM correct_answer
+			UNION ALL
+			SELECT * FROM wrong_answer)
+		SELECT translation answer FROM all_answer 
+		ORDER BY random()`, word)
+	if err != nil && err != sql.ErrNoRows {
+		return
+	}
+
+	w.Header().Add("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(&answers)
+}
+
+func (s *Server) SubmitAnswer(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	// Prepare error handling
+	var err error
+	defer markHttpError(w, err)
+
+	// Decode response
+	var answer Answer
+	err = json.NewDecoder(r.Body).Decode(&answer)
+	if err != nil {
+		return
+	}
+
+	// Compare with database
+	var correctAnswer string
+	err = s.DB.Get(&correctAnswer,
+		"SELECT translation FROM word WHERE id = ?",
+		answer.WordID)
+	if err != nil {
+		return
+	}
+
+	// Update tracker
+	var responseCode int
+	if answer.Answer == correctAnswer {
+		responseCode = 1
+		_, err = s.DB.Exec(
+			"UPDATE tracker SET last_word = ? WHERE id = 1",
+			answer.WordID)
+		if err != nil {
+			return
+		}
+	}
+
+	w.Header().Add("Content-Type", "text/plain")
+	_, err = fmt.Fprint(w, responseCode)
 }

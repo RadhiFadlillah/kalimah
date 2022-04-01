@@ -18,8 +18,8 @@ var presetMimeTypes = map[string]string{
 	".png":  "image/png",
 }
 
-// ServeAssets serve the assets for specified file path.
-func ServeAssets(w http.ResponseWriter, r *http.Request, assets fs.FS, filePath string) error {
+// serveAssets serve the assets for specified file path.
+func serveAssets(w http.ResponseWriter, r *http.Request, assets fs.FS, filePath string) error {
 	// Get request header
 	reqEtag := r.Header.Get("If-None-Match")
 	reqLastModified := r.Header.Get("If-Modified-Since")
@@ -71,4 +71,11 @@ func guessTypeByExtension(ext string) string {
 	}
 
 	return mime.TypeByExtension(ext)
+}
+
+// markHttpError put error message in response writer if error ever occured.
+func markHttpError(w http.ResponseWriter, err error) {
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+	}
 }
