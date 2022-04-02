@@ -29,10 +29,14 @@
 	export { className as class };
 
 	// Constants
+	const ayahPerPage = 30;
 	const arabicNumerals = '٠١٢٣٤٥٦٧٨٩';
 
 	// Local variables
 	let words: Word[] = [];
+	let pageCount: number;
+	let currentPage: number;
+
 	let container: HTMLElement;
 	let dataLoading: boolean = false;
 
@@ -40,7 +44,15 @@
 	$: nWords = words.length;
 	$: nTranslatedWords = words.filter((w) => w.translation !== '').length;
 	$: progress = Math.round((nTranslatedWords / nWords) * 100) || 0;
-	$: activeWord = words.find((w) => w.translation === '');
+	$: visibleWords = words.filter((w) => {
+		let startingAyah = (currentPage - 1) * ayahPerPage + 1;
+		let endingAyah = currentPage * ayahPerPage;
+		return w.ayah >= startingAyah && w.ayah <= endingAyah;
+	});
+	$: activeWord = ((): Word | undefined => {
+		let realActiveWord = words.find((w) => w.translation === '');
+		return visibleWords.find((w) => w.id === realActiveWord?.id);
+	})();
 
 	// API function
 	async function loadData(surah: number) {
@@ -49,8 +61,17 @@
 
 		try {
 			words = await getRequest(`/api/surah/${surah}/word`);
+			let maxAyah: number = words
+				.map((w: Word) => w.ayah)
+				.reduce((p, c) => (p > c ? p : c), 1);
+			let realActiveWord = words.find((w) => w.translation === '');
+
+			pageCount = Math.ceil(maxAyah / ayahPerPage);
+			if (realActiveWord == null) currentPage = 1;
+			else currentPage = Math.ceil(realActiveWord.ayah / ayahPerPage);
+
 			await tick();
-			focusToUntranslated();
+			focusToActive();
 		} catch (err) {
 			console.error(err);
 		}
@@ -60,8 +81,8 @@
 
 	// Local function
 	function isAyahSeparator(idx: number): boolean {
-		let currentAyah = words[idx]?.ayah;
-		let nextAyah = words[idx + 1]?.ayah;
+		let currentAyah = visibleWords[idx]?.ayah;
+		let nextAyah = visibleWords[idx + 1]?.ayah;
 		return currentAyah !== nextAyah;
 	}
 
@@ -74,29 +95,37 @@
 		return result;
 	}
 
-	function focusToUntranslated() {
-		let unfocused = container.querySelector('.item[aria-disabled="true"]');
-		if (unfocused != null) unfocused.scrollIntoView();
+	function focusToActive() {
+		let active = container.querySelector('.item.active') as HTMLElement;
+		let scrollTop = active == null ? 0 : active.offsetTop;
+		container.scrollTop = scrollTop - 36;
 	}
 
 	function handleKeydown(e: KeyboardEvent) {
 		if (e.key === 'Home' && !e.ctrlKey) {
 			e.preventDefault();
 			e.stopPropagation();
-			focusToUntranslated();
+			focusToActive();
+		} else if (e.key === '-' && currentPage > 1) {
+			handlePagination(currentPage - 1);
+		} else if (e.key === '+' && currentPage < pageCount) {
+			handlePagination(currentPage + 1);
 		}
+	}
+
+	function handlePagination(page: number) {
+		currentPage = page;
+		tick().then(() => focusToActive());
 	}
 
 	// Lifecycle function
 	onMount(() => loadData(surah));
 
-	$: {
-		loadData(surah);
-	}
+	// Reload data whenever surah changed
+	$: loadData(surah);
 
-	$: {
-		dispatch('actived', { word: activeWord });
-	}
+	// Dispatch active word whenever it changed
+	$: dispatch('actived', { word: activeWord });
 </script>
 
 <div class="root {className}">
@@ -110,7 +139,7 @@
 		bind:this={container}
 		on:keydown={handleKeydown}
 	>
-		{#each words as word, idx (word.id)}
+		{#each visibleWords as word, idx (word.id)}
 			<div
 				class="item"
 				tabindex="0"
@@ -129,6 +158,17 @@
 			{/if}
 		{/each}
 	</div>
+	{#if pageCount > 1}
+		<div class="footer">
+			{#each [...Array(pageCount).keys()].map((k) => k + 1) as page}
+				<button
+					on:click={() => handlePagination(page)}
+					class:active={page === currentPage}
+					>{page}
+				</button>
+			{/each}
+		</div>
+	{/if}
 	{#if dataLoading}
 		<LoadingCover class="surah-loading" />
 	{/if}
@@ -153,66 +193,97 @@
 		line-height: 36px;
 	}
 
+	div.footer {
+		padding: 0 8px;
+		flex-shrink: 0;
+		border-top: 1px solid var(--border);
+		display: flex;
+		flex-flow: row wrap;
+		align-items: center;
+		justify-content: center;
+
+		button {
+			font-size: 1rem;
+			padding: 8px;
+			margin: 8px;
+			background-color: transparent;
+			cursor: pointer;
+
+			&:hover,
+			&:focus {
+				background-color: var(--bg-hover);
+			}
+
+			&.active {
+				color: var(--main);
+				background-color: var(--main-bg);
+				pointer-events: none;
+				cursor: default;
+			}
+		}
+	}
+
 	div.container {
 		display: flex;
+		flex: 1 0;
 		flex-flow: row-reverse wrap;
 		justify-content: center;
-	}
 
-	div.item {
-		display: flex;
-		flex-flow: column nowrap;
-		margin: 8px;
-		padding: 8px;
-		cursor: pointer;
+		div.item {
+			display: flex;
+			flex-flow: column nowrap;
+			margin: 8px;
+			padding: 8px;
+			cursor: pointer;
 
-		p.arabic {
-			font-size: 3rem;
+			p.arabic {
+				font-size: 3rem;
+				font-family: 'KFGQPC-HAFS';
+				text-align: center;
+				color: var(--fg);
+			}
+
+			p.translation {
+				font-size: 0.9rem;
+				color: var(--fg-secondary);
+				text-align: center;
+			}
+
+			&:hover,
+			&:focus {
+				background-color: var(--bg-hover);
+			}
+
+			&[aria-disabled='true'] {
+				pointer-events: none;
+				cursor: default;
+
+				p {
+					color: var(--fg-disabled);
+				}
+			}
+
+			&.active {
+				background-color: var(--main-bg);
+
+				p {
+					color: var(--main);
+				}
+			}
+		}
+
+		p.number {
+			align-self: center;
+			font-size: 3.5rem;
 			font-family: 'KFGQPC-HAFS';
-			text-align: center;
-			color: var(--fg);
-		}
-
-		p.translation {
-			font-size: 0.9rem;
-			color: var(--fg-secondary);
-			text-align: center;
-		}
-
-		&:hover,
-		&:focus {
-			background-color: var(--bg-hover);
-		}
-
-		&[aria-disabled='true'] {
+			padding: 16px;
+			color: var(--main);
+			border-style: solid;
 			pointer-events: none;
-			cursor: default;
 
-			p {
+			&.disabled {
 				color: var(--fg-disabled);
 			}
-		}
-
-		&.active {
-			background-color: var(--main-bg);
-
-			p {
-				color: var(--main);
-			}
-		}
-	}
-
-	p.number {
-		align-self: center;
-		font-size: 3.5rem;
-		font-family: 'KFGQPC-HAFS';
-		padding: 16px;
-		color: var(--main);
-		border-style: solid;
-		pointer-events: none;
-
-		&.disabled {
-			color: var(--fg-disabled);
 		}
 	}
 
