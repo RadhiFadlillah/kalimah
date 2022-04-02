@@ -1,23 +1,24 @@
 <script lang="ts">
-	// Import functions
-	import { tick, onMount } from 'svelte';
+	// Import
+	import { onMount, createEventDispatcher, tick } from 'svelte';
 	import { getRequest } from '../libs/api-request';
-
-	// Data types
-	interface Surah {
-		id: number;
-		name: string;
-		translation: string;
-		translated: boolean;
-	}
+	import type { Surah } from './Surah.svelte';
+	const dispatch = createEventDispatcher();
 
 	// Props
 	let className: string = '';
+	export let activeSurah: number = 0;
 	export { className as class };
 
 	// Local variables
 	let listSurah: Surah[] = [];
 	let dataLoading: boolean = false;
+
+	// Reactive variable
+	$: lastTranslatedSurah = ((): Surah => {
+		let idxUntranslated = listSurah.findIndex((s) => s.translated === false);
+		return idxUntranslated < 0 ? listSurah[0] : listSurah[idxUntranslated - 1];
+	})();
 
 	// API function
 	async function loadData() {
@@ -25,12 +26,17 @@
 
 		try {
 			listSurah = await getRequest('/api/surah');
-			console.log(listSurah);
+			await tick();
+			dispatch('loaded', { surah: lastTranslatedSurah });
 		} catch (err) {
 			console.error(err);
 		}
 
-		dataLoading = true;
+		dataLoading = false;
+	}
+
+	function handleItemClick(surah: Surah) {
+		dispatch('itemclick', { surah: surah });
 	}
 
 	// Lifecycle function
@@ -47,6 +53,8 @@
 				class="item"
 				role="button"
 				tabindex="0"
+				on:click={() => handleItemClick(surah)}
+				class:active={surah.id === activeSurah}
 				aria-disabled={!surah.translated}
 			>
 				<p class="number">{idx + 1}</p>
@@ -121,6 +129,14 @@
 			p {
 				color: var(--fg-disabled);
 				font-variation-settings: 'wght' 500;
+			}
+		}
+
+		&.active {
+			background-color: var(--main-bg);
+
+			p {
+				color: var(--main);
 			}
 		}
 	}

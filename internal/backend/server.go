@@ -31,7 +31,7 @@ func (s *Server) Serve(port int) error {
 	router.GET("/res/*filepath", s.ServeFile)
 	router.GET("/build/*filepath", s.ServeFile)
 	router.GET("/api/surah", s.GetSurah)
-	router.GET("/api/word", s.GetWords)
+	router.GET("/api/surah/:id/word", s.GetSurahWords)
 	router.GET("/api/answer", s.GetAnswers)
 	router.POST("/api/answer", s.SubmitAnswer)
 
@@ -104,7 +104,7 @@ func (s *Server) GetSurah(w http.ResponseWriter, r *http.Request, ps httprouter.
 	listSurah := []Surah{}
 	err = s.DB.Select(&listSurah,
 		`WITH last_word AS (
-			SELECT last_word+1 id FROM tracker WHERE id = 1),
+			SELECT last_word+500 id FROM tracker WHERE id = 1),
 		translated_surah AS (
 			SELECT DISTINCT surah id
 			FROM word, last_word
@@ -121,17 +121,17 @@ func (s *Server) GetSurah(w http.ResponseWriter, r *http.Request, ps httprouter.
 	err = json.NewEncoder(w).Encode(&listSurah)
 }
 
-func (s *Server) GetWords(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func (s *Server) GetSurahWords(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	var err error
 	defer markHttpError(w, err)
 
-	strSurah := r.URL.Query().Get("surah")
+	strSurah := ps.ByName("id")
 	surah, _ := strconv.Atoi(strSurah)
 
 	words := []Word{}
 	err = s.DB.Select(&words,
 		`WITH last_word AS (
-			SELECT last_word id FROM tracker WHERE id = 1)
+			SELECT last_word+500 id FROM tracker WHERE id = 1)
 		SELECT w.id, ayah, position, arabic,
 			IIF(w.id <= lw.id, translation, '') translation
 		FROM word w, last_word lw

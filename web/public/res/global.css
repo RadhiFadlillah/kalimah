@@ -87,6 +87,11 @@ Colors used here taken from Tailwind palette https://tailwindcolor.com/
 	font-weight: 100 900;
 }
 
+@font-face {
+	font-family: 'KFGQPC-HAFS';
+	src: url('fonts/KFGQPC-HAFS.woff2') format('woff2');
+}
+
 /* Global styling */
 * {
 	min-width: 0;
