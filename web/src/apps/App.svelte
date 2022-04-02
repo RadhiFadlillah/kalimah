@@ -1,12 +1,17 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import ListSurah from '../components/ListSurah.svelte';
 	import Surah from '../components/Surah.svelte';
-	import type { Surah as TSurah } from '../components/Surah.svelte';
+	import ListSurah from '../components/ListSurah.svelte';
+	import AnswerPage from '../components/AnswerPage.svelte';
+	import type {
+		Surah as TSurah,
+		Word as TWord,
+	} from '../components/Surah.svelte';
 
 	// Local variables
+	let surahRef: Surah;
 	let activeSurah: TSurah | undefined;
-	let activeWord: number = 0;
+	let activeWord: TWord | undefined;
 
 	// Lifecycle function
 	onMount(() => {
@@ -27,6 +32,12 @@
 
 	function handleWordActived(e: CustomEvent) {
 		console.log('ACTIVE WORD:', e.detail.word);
+		activeWord = e.detail.word as TWord;
+	}
+
+	function handleAnswerSubmit(e: CustomEvent) {
+		let answer = e.detail.answer;
+		surahRef?.saveTranslation(activeWord, answer);
 	}
 </script>
 
@@ -35,18 +46,29 @@
 <div class="app">
 	<ListSurah
 		class="list-surah"
+		active={activeSurah}
 		on:loaded={handleListSurahLoaded}
 		on:itemclick={handleListSurahClick}
 	/>
 	{#if activeSurah != null}
-		<Surah class="surah" surah={activeSurah} on:actived={handleWordActived} />
+		<Surah
+			bind:this={surahRef}
+			class="surah"
+			surah={activeSurah}
+			on:actived={handleWordActived}
+		/>
+	{/if}
+	{#if activeWord != null}
+		<AnswerPage
+			class="answer"
+			word={activeWord}
+			on:submit={handleAnswerSubmit}
+		/>
 	{/if}
 </div>
 
 <style lang="less">
 	.app {
-		display: flex;
-		flex-flow: row nowrap;
 		width: 100%;
 		height: 100%;
 		max-width: 100%;
@@ -55,17 +77,23 @@
 		min-height: 0;
 		overflow: hidden;
 		color: var(--fg);
-		background-color: var(--bg-secondary);
+		background-color: var(--border);
 		position: relative;
+		display: grid;
+		gap: 1px;
+		grid-template-rows: minmax(0, 1fr) auto;
+		grid-template-columns: 220px minmax(0, 1fr);
 	}
 
 	.app :global(.list-surah) {
 		width: 220px;
-		border-right: 1px solid var(--border);
+		grid-row: 1/-1;
+		grid-column: 1;
 	}
 
-	.app :global(.surah) {
-		flex: 1 0;
-		border-right: 1px solid var(--border);
+	.app :global(.surah),
+	.app :global(.answer) {
+		grid-column: 2;
+		max-width: 1080px;
 	}
 </style>

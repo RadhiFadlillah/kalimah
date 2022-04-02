@@ -8,7 +8,7 @@
 
 	// Props
 	let className: string = '';
-	let activeSurah: number = 0;
+	export let active: Surah | undefined;
 	export { className as class };
 
 	// Local variables
@@ -55,7 +55,7 @@
 				role="button"
 				tabindex="0"
 				on:click={() => handleItemClick(surah)}
-				class:active={surah.id === activeSurah}
+				class:active={surah.id === active?.id}
 				aria-disabled={!surah.translated}
 			>
 				<p class="number">{idx + 1}</p>

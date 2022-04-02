@@ -84,7 +84,6 @@
 	class="loading-cover {className}"
 	bind:clientWidth
 	bind:clientHeight
-	transition:fade={{ easing: quintOut }}
 >
 	<canvas bind:this={canvas} />
 </div>

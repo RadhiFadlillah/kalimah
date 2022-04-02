@@ -32,7 +32,7 @@ func (s *Server) Serve(port int) error {
 	router.GET("/build/*filepath", s.ServeFile)
 	router.GET("/api/surah", s.GetSurah)
 	router.GET("/api/surah/:id/word", s.GetSurahWords)
-	router.GET("/api/answer", s.GetAnswers)
+	router.GET("/api/choice/:word-id", s.GetChoices)
 	router.POST("/api/answer", s.SubmitAnswer)
 
 	router.PanicHandler = func(w http.ResponseWriter, r *http.Request, arg interface{}) {
@@ -104,7 +104,7 @@ func (s *Server) GetSurah(w http.ResponseWriter, r *http.Request, ps httprouter.
 	listSurah := []Surah{}
 	err = s.DB.Select(&listSurah,
 		`WITH last_word AS (
-			SELECT last_word+500 id FROM tracker WHERE id = 1),
+			SELECT last_word+1 id FROM tracker WHERE id = 1),
 		translated_surah AS (
 			SELECT DISTINCT surah id
 			FROM word, last_word
@@ -131,7 +131,7 @@ func (s *Server) GetSurahWords(w http.ResponseWriter, r *http.Request, ps httpro
 	words := []Word{}
 	err = s.DB.Select(&words,
 		`WITH last_word AS (
-			SELECT last_word+500 id FROM tracker WHERE id = 1)
+			SELECT last_word id FROM tracker WHERE id = 1)
 		SELECT w.id, ayah, position, arabic,
 			IIF(w.id <= lw.id, translation, '') translation
 		FROM word w, last_word lw
@@ -145,12 +145,12 @@ func (s *Server) GetSurahWords(w http.ResponseWriter, r *http.Request, ps httpro
 	err = json.NewEncoder(w).Encode(&words)
 }
 
-func (s *Server) GetAnswers(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func (s *Server) GetChoices(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	var err error
 	defer markHttpError(w, err)
 
-	strWord := r.URL.Query().Get("word")
-	word, _ := strconv.Atoi(strWord)
+	strWordId := ps.ByName("word-id")
+	wordId, _ := strconv.Atoi(strWordId)
 
 	answers := []string{}
 	err = s.DB.Select(&answers,
@@ -167,7 +167,7 @@ func (s *Server) GetAnswers(w http.ResponseWriter, r *http.Request, ps httproute
 			UNION ALL
 			SELECT * FROM wrong_answer)
 		SELECT translation answer FROM all_answer 
-		ORDER BY random()`, word)
+		ORDER BY random()`, wordId)
 	if err != nil && err != sql.ErrNoRows {
 		return
 	}

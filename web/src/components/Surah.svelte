@@ -123,6 +123,22 @@
 		tick().then(() => focusToActive());
 	}
 
+	// Exported function
+	export function saveTranslation(word: Word | undefined, translation: string) {
+		if (word == null) return;
+
+		let idx = words.findIndex((w) => w.id === word.id);
+		if (idx >= 0) words[idx].translation = translation;
+
+		let next = word.id + 1;
+		let nextIsVisible = visibleWords.findIndex((w) => w.id === next) >= 0;
+		if (!nextIsVisible && currentPage < pageCount) {
+			currentPage++;
+		}
+
+		tick().then(() => focusToActive());
+	}
+
 	// Lifecycle function
 	onMount(() => loadData(surah?.id));
 
