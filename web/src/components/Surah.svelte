@@ -228,6 +228,7 @@
 		flex: 1 0;
 		flex-flow: row-reverse wrap;
 		justify-content: center;
+		align-content: flex-start;
 
 		div.item {
 			display: flex;
