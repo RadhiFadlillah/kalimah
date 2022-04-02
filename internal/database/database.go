@@ -2,6 +2,7 @@ package database
 
 import (
 	"fmt"
+	"net/url"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -9,8 +10,14 @@ import (
 
 // Open database on specified path.
 func Open(dbPath string) (db *sqlx.DB, err error) {
+	// Prepare DSN
+	q := url.Values{}
+	q.Add("_pragma", "foreign_keys=1")
+	q.Add("_pragma", "synchronous=0")
+	dsn := dbPath + "?" + q.Encode()
+
 	// Connect to database
-	db, err = sqlx.Connect("sqlite", dbPath)
+	db, err = sqlx.Connect("sqlite", dsn)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open database: %v", err)
 	}
