@@ -8,7 +8,7 @@
 
 	// Props
 	let className: string = '';
-	export let activeSurah: number = 0;
+	let activeSurah: number = 0;
 	export { className as class };
 
 	// Local variables

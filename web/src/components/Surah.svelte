@@ -24,8 +24,7 @@
 
 	// Props
 	let className: string = '';
-	export let surah: number = 2;
-	export let surahName: string = 'Al-Baqarah';
+	export let surah: Surah | undefined;
 	export { className as class };
 
 	// Constants
@@ -41,9 +40,15 @@
 	let dataLoading: boolean = false;
 
 	// Reactive variables
-	$: nWords = words.length;
-	$: nTranslatedWords = words.filter((w) => w.translation !== '').length;
-	$: progress = Math.round((nTranslatedWords / nWords) * 100) || 0;
+	$: headerTitle = ((): string => {
+		if (surah == null) return '';
+		if (dataLoading) return surah!.name;
+
+		let nWords = words.length;
+		let nTranslatedWords = words.filter((w) => w.translation !== '').length;
+		let progress = Math.round((nTranslatedWords / nWords) * 100) || 0;
+		return `(${progress}%) • ${surah!.name} • ${nTranslatedWords} / ${nWords}`;
+	})();
 	$: visibleWords = words.filter((w) => {
 		let startingAyah = (currentPage - 1) * ayahPerPage + 1;
 		let endingAyah = currentPage * ayahPerPage;
@@ -55,9 +60,9 @@
 	})();
 
 	// API function
-	async function loadData(surah: number) {
-		dataLoading = true;
+	async function loadData(surah?: number) {
 		words = [];
+		dataLoading = true;
 
 		try {
 			words = await getRequest(`/api/surah/${surah}/word`);
@@ -119,19 +124,17 @@
 	}
 
 	// Lifecycle function
-	onMount(() => loadData(surah));
+	onMount(() => loadData(surah?.id));
 
 	// Reload data whenever surah changed
-	$: loadData(surah);
+	$: loadData(surah?.id);
 
 	// Dispatch active word whenever it changed
 	$: dispatch('actived', { word: activeWord });
 </script>
 
 <div class="root {className}">
-	<p class="header">
-		({progress}%) • {surahName} • {nTranslatedWords} / {nWords}
-	</p>
+	<p class="header">{headerTitle}</p>
 	<div
 		class="container"
 		data-scrollbar

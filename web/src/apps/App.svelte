@@ -5,8 +5,7 @@
 	import type { Surah as TSurah } from '../components/Surah.svelte';
 
 	// Local variables
-	let activeSurah: number = 0;
-	let activeSurahName: string = '';
+	let activeSurah: TSurah | undefined;
 	let activeWord: number = 0;
 
 	// Lifecycle function
@@ -17,19 +16,16 @@
 	// Event handler
 	function handleListSurahLoaded(e: CustomEvent) {
 		let surah = e.detail.surah;
-		if (activeSurah <= 0) {
-			activeSurah = surah.id;
-			activeSurahName = surah.name;
+		if (activeSurah == null) {
+			activeSurah = surah;
 		}
 	}
 
 	function handleListSurahClick(e: CustomEvent) {
-		let surah = e.detail.surah as TSurah;
-		activeSurah = surah.id;
-		activeSurahName = surah.name;
+		activeSurah = e.detail.surah as TSurah;
 	}
 
-	function handleSurahActived(e: CustomEvent) {
+	function handleWordActived(e: CustomEvent) {
 		console.log('ACTIVE WORD:', e.detail.word);
 	}
 </script>
@@ -39,17 +35,11 @@
 <div class="app">
 	<ListSurah
 		class="list-surah"
-		{activeSurah}
 		on:loaded={handleListSurahLoaded}
 		on:itemclick={handleListSurahClick}
 	/>
-	{#if activeSurah > 0}
-		<Surah
-			class="surah"
-			surah={activeSurah}
-			surahName={activeSurahName}
-			on:actived={handleSurahActived}
-		/>
+	{#if activeSurah != null}
+		<Surah class="surah" surah={activeSurah} on:actived={handleWordActived} />
 	{/if}
 </div>
 
