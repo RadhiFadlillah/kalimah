@@ -2,6 +2,7 @@
 	// Import
 	import { onMount, createEventDispatcher, tick } from 'svelte';
 	import { getRequest } from '../libs/api-request';
+	import LoadingCover from './LoadingCover.svelte';
 	import type { Surah } from './Surah.svelte';
 	const dispatch = createEventDispatcher();
 
@@ -63,6 +64,9 @@
 			</div>
 		{/each}
 	</div>
+	{#if dataLoading}
+		<LoadingCover class="list-loading" />
+	{/if}
 </div>
 
 <style lang="less">
@@ -70,16 +74,18 @@
 		display: flex;
 		flex-flow: column nowrap;
 		background-color: var(--bg);
+		position: relative;
 	}
 
 	p.header {
 		flex-shrink: 0;
-		padding: 8px;
+		padding: 0 8px;
 		font-size: 1.2rem;
 		font-variation-settings: 'wght' 600;
 		border-bottom: 1px solid var(--border);
 		text-align: center;
 		color: var(--main);
+		line-height: 36px;
 	}
 
 	div.item {
@@ -139,5 +145,14 @@
 				color: var(--main);
 			}
 		}
+	}
+
+	div.root :global(.list-loading) {
+		z-index: 1;
+		position: absolute;
+		top: 37px;
+		left: 0;
+		right: 0;
+		bottom: 0;
 	}
 </style>
