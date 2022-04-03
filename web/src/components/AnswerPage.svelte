@@ -26,6 +26,9 @@
 
 		try {
 			choices = await getRequest(`/api/choice/${word?.id}`);
+			choices.sort((a, b) =>
+				a.localeCompare(b, undefined, { sensitivity: 'base' })
+			);
 		} catch (err) {
 			console.error(err);
 		}
