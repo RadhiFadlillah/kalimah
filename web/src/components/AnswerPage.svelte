@@ -105,6 +105,7 @@
 		font-family: 'KFGQPC-HAFS';
 		text-align: center;
 		color: var(--main);
+		direction: rtl;
 	}
 
 	div.container {

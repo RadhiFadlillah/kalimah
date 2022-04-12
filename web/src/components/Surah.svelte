@@ -261,6 +261,7 @@
 				font-family: 'KFGQPC-HAFS';
 				text-align: center;
 				color: var(--fg);
+				direction: rtl;
 			}
 
 			p.translation {
