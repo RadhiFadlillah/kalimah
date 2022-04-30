@@ -99,19 +99,22 @@ func (s *Server) ServeFile(w http.ResponseWriter, r *http.Request, ps httprouter
 
 func (s *Server) GetSurah(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	var err error
-	defer markHttpError(w, err)
+	defer func() {
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+		}
+	}()
 
 	listSurah := []Surah{}
 	err = s.DB.Select(&listSurah,
 		`WITH last_word AS (
-			SELECT last_word+1 id FROM tracker WHERE id = 1),
-		translated_surah AS (
-			SELECT DISTINCT surah id
+			SELECT IFNULL(last_word, 0) + 1 id FROM tracker WHERE id = 1),
+		last_ayah AS (
+			SELECT MAX(word.ayah) ayah
 			FROM word, last_word
 			WHERE word.id <= last_word.id)
-		SELECT s.id, s.name, s.translation, IIF(ts.id IS NULL, 0, 1) translated
-		FROM surah s
-		LEFT JOIN translated_surah ts ON s.id = ts.id
+		SELECT s.id, s.name, s.translation, (s.start <= la.ayah) translated
+		FROM surah s, last_ayah la
 		ORDER BY s.id`)
 	if err != nil && err != sql.ErrNoRows {
 		return
@@ -123,7 +126,11 @@ func (s *Server) GetSurah(w http.ResponseWriter, r *http.Request, ps httprouter.
 
 func (s *Server) GetSurahWords(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	var err error
-	defer markHttpError(w, err)
+	defer func() {
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+		}
+	}()
 
 	strSurah := ps.ByName("id")
 	surah, _ := strconv.Atoi(strSurah)
@@ -131,12 +138,13 @@ func (s *Server) GetSurahWords(w http.ResponseWriter, r *http.Request, ps httpro
 	words := []Word{}
 	err = s.DB.Select(&words,
 		`WITH last_word AS (
-			SELECT last_word id FROM tracker WHERE id = 1)
-		SELECT w.id, ayah, position, arabic,
+			SELECT IFNULL(last_word, 0) id FROM tracker WHERE id = 1),
+		ayah_range AS (
+			SELECT start, end FROM surah WHERE id = ?)
+		SELECT w.id, w.ayah-ar.start+1 ayah, w.position, w.arabic,
 			IIF(w.id <= lw.id, translation, '') translation
-		FROM word w, last_word lw
-		WHERE surah = ?
-		ORDER BY w.id, ayah, position`, surah)
+		FROM word w, ayah_range ar, last_word lw
+		WHERE w.ayah >= ar.start AND w.ayah <= ar.end`, surah)
 	if err != nil && err != sql.ErrNoRows {
 		return
 	}
@@ -147,7 +155,11 @@ func (s *Server) GetSurahWords(w http.ResponseWriter, r *http.Request, ps httpro
 
 func (s *Server) GetChoices(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	var err error
-	defer markHttpError(w, err)
+	defer func() {
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+		}
+	}()
 
 	strWordId := ps.ByName("word-id")
 	wordId, _ := strconv.Atoi(strWordId)
@@ -167,7 +179,7 @@ func (s *Server) GetChoices(w http.ResponseWriter, r *http.Request, ps httproute
 			UNION ALL
 			SELECT * FROM wrong_answer)
 		SELECT translation answer FROM all_answer 
-		ORDER BY random()`, wordId)
+		ORDER BY LOWER(answer)`, wordId)
 	if err != nil && err != sql.ErrNoRows {
 		return
 	}
@@ -179,7 +191,11 @@ func (s *Server) GetChoices(w http.ResponseWriter, r *http.Request, ps httproute
 func (s *Server) SubmitAnswer(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	// Prepare error handling
 	var err error
-	defer markHttpError(w, err)
+	defer func() {
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+		}
+	}()
 
 	// Decode response
 	var answer Answer

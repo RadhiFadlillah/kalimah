@@ -72,10 +72,3 @@ func guessTypeByExtension(ext string) string {
 
 	return mime.TypeByExtension(ext)
 }
-
-// markHttpError put error message in response writer if error ever occured.
-func markHttpError(w http.ResponseWriter, err error) {
-	if err != nil {
-		http.Error(w, err.Error(), 500)
-	}
-}
