@@ -10,6 +10,7 @@ require (
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.4.0
 	github.com/yuin/goldmark v1.2.1
+	golang.org/x/text v0.3.3
 	modernc.org/sqlite v1.15.4
 )
 

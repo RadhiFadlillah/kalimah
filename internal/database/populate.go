@@ -5,6 +5,12 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/sirupsen/logrus"
+	"golang.org/x/text/transform"
+	"golang.org/x/text/unicode/norm"
+)
+
+var (
+	unicodeTransformer = transform.Chain(norm.NFKD, norm.NFKC)
 )
 
 func PopulateData(db *sqlx.DB) error {
@@ -160,13 +166,21 @@ func populateWord(tx *sqlx.Tx) error {
 	for id := 1; id <= len(words); id++ {
 		word := words[id]
 		translation := translations[id]
+		arabic := normalizeUnicode(word.Nastaliq)
 
-		_, err = stmt.Exec(id, word.Ayah, word.Position,
-			word.Uthmani, translation)
+		_, err = stmt.Exec(id, word.Ayah, word.Position, arabic, translation)
 		if err != nil {
 			return err
 		}
 	}
 
 	return nil
+}
+
+func normalizeUnicode(str string) string {
+	normalized, _, err := transform.String(unicodeTransformer, str)
+	if err != nil {
+		return str
+	}
+	return normalized
 }
