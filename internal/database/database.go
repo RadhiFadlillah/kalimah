@@ -44,38 +44,17 @@ func Open(dbPath string) (db *sqlx.DB, err error) {
 	}()
 
 	// Generate tables
-	_, err = tx.Exec(ddlCreateSurah)
-	if err != nil {
-		return nil, err
-	}
+	ddlQueries := []string{
+		ddlCreateSurah,
+		ddlCreateAyah,
+		ddlCreateWord,
+		ddlCreateTracker}
 
-	_, err = tx.Exec(ddlCreateWord)
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = tx.Exec(ddlCreateTracker)
-	if err != nil {
-		return nil, err
-	}
-
-	// Populate data
-	_, err = tx.Exec(sqlInsertSurah)
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = tx.Exec(sqlInsertWord)
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = tx.Exec(`
-		INSERT INTO tracker (id, last_word)
-		VALUES (1, 0)
-		ON CONFLICT DO NOTHING`)
-	if err != nil {
-		return nil, err
+	for _, query := range ddlQueries {
+		_, err = tx.Exec(query)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// Commit transaction
