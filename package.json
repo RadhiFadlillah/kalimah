@@ -2,6 +2,9 @@
 	"name": "kalimah",
 	"version": "1.0.0",
 	"devDependencies": {
+		"@iconify-icons/ic": "^1.2.3",
+		"@iconify/svelte": "^2.2.1",
+		"@iconify/types": "^1.1.0",
 		"@tsconfig/svelte": "^3.0.0",
 		"esbuild": "^0.14.29",
 		"esbuild-svelte": "^0.6.3",

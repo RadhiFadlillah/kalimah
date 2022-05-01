@@ -2,7 +2,7 @@
 	// Import
 	import { onMount, createEventDispatcher, tick } from 'svelte';
 	import { getRequest } from '../libs/api-request';
-	import LoadingCover from './LoadingCover.svelte';
+	import LoadingCover from '../components/LoadingCover.svelte';
 	import type { Surah } from './Surah.svelte';
 	const dispatch = createEventDispatcher();
 

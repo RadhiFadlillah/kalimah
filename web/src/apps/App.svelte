@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import Surah from '../components/Surah.svelte';
-	import ListSurah from '../components/ListSurah.svelte';
-	import AnswerPage from '../components/AnswerPage.svelte';
+	import Dialog from '../components/Dialog.svelte';
+	import Surah from '../fragments/Surah.svelte';
+	import ListSurah from '../fragments/ListSurah.svelte';
+	import AnswerSheet from '../fragments/AnswerSheet.svelte';
 	import type {
 		Surah as TSurah,
 		Word as TWord,
@@ -59,12 +60,14 @@
 		/>
 	{/if}
 	{#if activeWord != null}
-		<AnswerPage
+		<AnswerSheet
 			class="answer"
 			word={activeWord}
 			on:submit={handleAnswerSubmit}
 		/>
 	{/if}
+
+	<Dialog title="Kalimah" closable />
 </div>
 
 <style lang="less">

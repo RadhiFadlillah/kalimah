@@ -27,6 +27,7 @@ Colors used here taken from Tailwind palette https://tailwindcolor.com/
 
 	--border          : #e5e7eb;  /* Cool Gray 200 */
 	--border-secondary: #d1d5db;  /* Cool Gray 300 */
+	--border-focus: var(--main);
 
 	--bg-active   : var(--main-bg);
 	--bg-selection: var(--main-bg);
@@ -69,6 +70,7 @@ Colors used here taken from Tailwind palette https://tailwindcolor.com/
 	
 	--border          : #374151;  /* Cool Gray 700 */
 	--border-secondary: #4b5563;  /* Cool Gray 600 */
+	--border-focus: var(--main);
 	
 	--bg-active   : var(--main-bg);
 	--bg-selection: var(--main-bg);
