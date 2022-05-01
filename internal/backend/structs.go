@@ -7,6 +7,13 @@ type Surah struct {
 	Translated  bool   `db:"translated"  json:"translated"`
 }
 
+type Ayah struct {
+	ID          int    `db:"id"          json:"id"`
+	Arabic      string `db:"arabic"      json:"arabic"`
+	Translation string `db:"translation" json:"translation"`
+	Tafsir      string `db:"tafsir"      json:"tafsir"`
+}
+
 type Word struct {
 	ID          int    `db:"id"          json:"id"`
 	Ayah        int    `db:"ayah"        json:"ayah"`

@@ -16,10 +16,9 @@
 </script>
 
 <script lang="ts">
-	// Import functions
-	import { onMount, createEventDispatcher, tick } from 'svelte';
-	import { getRequest } from '../libs/api-request';
 	import LoadingCover from '../components/LoadingCover.svelte';
+	import { createEventDispatcher, tick } from 'svelte';
+	import { getRequest } from '../libs/api-request';
 	const dispatch = createEventDispatcher();
 
 	// Props
@@ -35,7 +34,6 @@
 	let words: Word[] = [];
 	let pageCount: number;
 	let currentPage: number;
-
 	let container: HTMLElement;
 	let dataLoading: boolean = false;
 
@@ -123,6 +121,10 @@
 		tick().then(() => focusToActive());
 	}
 
+	function handleAyahClick(ayah: number) {
+		dispatch('ayahclick', { surah: surah?.id, ayah: ayah });
+	}
+
 	// Exported function
 	export function saveTranslation(word: Word | undefined, translation: string) {
 		if (word == null) return;
@@ -168,9 +170,13 @@
 			</div>
 
 			{#if isAyahSeparator(idx)}
-				<p class="number" class:disabled={word.translation === ''}>
+				<button
+					class="number"
+					disabled={word.translation === ''}
+					on:click={() => handleAyahClick(word.ayah)}
+				>
 					{toArabicNumeral(word.ayah)}
-				</p>
+				</button>
 			{/if}
 		{/each}
 	</div>
@@ -290,16 +296,22 @@
 			}
 		}
 
-		p.number {
+		button.number {
 			align-self: center;
 			font-size: 3.5rem;
 			font-family: 'KFGQPC-HAFS';
 			padding: 16px;
 			color: var(--main);
-			border-style: solid;
-			pointer-events: none;
+			background-color: transparent;
+			cursor: pointer;
 
-			&.disabled {
+			&:hover,
+			&:focus {
+				background-color: var(--bg-hover);
+			}
+
+			&[disabled] {
+				pointer-events: none;
 				color: var(--fg-disabled);
 			}
 		}

@@ -178,6 +178,7 @@
 	.content {
 		padding: 16px;
 		position: relative;
+		flex: 1 0;
 
 		:global(.loading-cover) {
 			position: absolute;

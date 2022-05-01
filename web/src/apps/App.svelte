@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import Dialog from '../components/Dialog.svelte';
+	import Ayah from '../fragments/Ayah.svelte';
 	import Surah from '../fragments/Surah.svelte';
 	import ListSurah from '../fragments/ListSurah.svelte';
 	import AnswerSheet from '../fragments/AnswerSheet.svelte';
@@ -13,6 +14,10 @@
 	let surahRef: Surah;
 	let activeSurah: TSurah | undefined;
 	let activeWord: TWord | undefined;
+
+	// Dialog ayah props
+	let dlgAyahNumber: number = 0;
+	let dlgAyahVisible: boolean = false;
 
 	// Dialog error props
 	let dlgErrorVisible: boolean = false;
@@ -43,10 +48,22 @@
 		}
 	}
 
+	function handleSurahAyahClick(e: CustomEvent) {
+		dlgAyahNumber = e.detail.ayah as number;
+		dlgAyahVisible = true;
+	}
+
 	// Event handler for answer sheet
 	function handleAnswerSubmit(e: CustomEvent) {
 		let answer = e.detail.answer;
 		surahRef?.saveTranslation(activeWord, answer);
+	}
+
+	// Event handler for ayah
+	function handleAyahError(e: CustomEvent) {
+		dlgAyahVisible = false;
+		dlgErrorVisible = true;
+		dlgErrorMessage = e.detail;
 	}
 
 	// Common event handler for fragments
@@ -72,6 +89,7 @@
 			class="surah"
 			surah={activeSurah}
 			on:actived={handleSurahActived}
+			on:ayahclick={handleSurahAyahClick}
 			on:error={handleFragmentError}
 		/>
 	{/if}
@@ -93,6 +111,16 @@
 		>
 			<p slot="content">{dlgErrorMessage}</p>
 		</Dialog>
+	{/if}
+
+	{#if dlgAyahVisible}
+		<Ayah
+			ayah={dlgAyahNumber}
+			surah={activeSurah?.id || 1}
+			on:error={handleAyahError}
+			on:close={() => (dlgAyahVisible = false)}
+			on:mainclick={() => (dlgAyahVisible = false)}
+		/>
 	{/if}
 </div>
 

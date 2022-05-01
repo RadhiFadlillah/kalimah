@@ -31,7 +31,8 @@ func (s *Server) Serve(port int) error {
 	router.GET("/res/*filepath", s.ServeFile)
 	router.GET("/build/*filepath", s.ServeFile)
 	router.GET("/api/surah", s.GetSurah)
-	router.GET("/api/surah/:id/word", s.GetSurahWords)
+	router.GET("/api/surah/:surah/word", s.GetSurahWords)
+	router.GET("/api/surah/:surah/ayah/:ayah", s.GetSurahAyah)
 	router.GET("/api/choice/:word-id", s.GetChoices)
 	router.POST("/api/answer", s.SubmitAnswer)
 
@@ -132,8 +133,7 @@ func (s *Server) GetSurahWords(w http.ResponseWriter, r *http.Request, ps httpro
 		}
 	}()
 
-	strSurah := ps.ByName("id")
-	surah, _ := strconv.Atoi(strSurah)
+	surah, _ := strconv.Atoi(ps.ByName("surah"))
 
 	words := []Word{}
 	err = s.DB.Select(&words,
@@ -151,6 +151,42 @@ func (s *Server) GetSurahWords(w http.ResponseWriter, r *http.Request, ps httpro
 
 	w.Header().Add("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(&words)
+}
+
+func (s *Server) GetSurahAyah(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	var err error
+	defer func() {
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+		}
+	}()
+
+	// Parse parameter
+	surah, _ := strconv.Atoi(ps.ByName("surah"))
+	ayah, _ := strconv.Atoi(ps.ByName("ayah"))
+
+	// Fetch translation and tafsir
+	var data Ayah
+	err = s.DB.Get(&data,
+		`SELECT id, translation, tafsir FROM ayah
+		WHERE id = ? - 1 + (SELECT start FROM surah WHERE id = ?)`,
+		ayah, surah)
+	if err != nil {
+		return
+	}
+
+	// Fetch arabic text
+	err = s.DB.Get(&data.Arabic,
+		`SELECT GROUP_CONCAT(arabic, " ") FROM word 
+		WHERE ayah = ? - 1 + (SELECT start FROM surah WHERE id = ?)
+		ORDER BY position`,
+		ayah, surah)
+	if err != nil {
+		return
+	}
+
+	w.Header().Add("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(&data)
 }
 
 func (s *Server) GetChoices(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
