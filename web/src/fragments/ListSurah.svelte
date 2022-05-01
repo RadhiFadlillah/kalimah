@@ -5,6 +5,7 @@
 
 	// Import icons and types
 	import type { Surah } from './Surah.svelte';
+	import icTheme from '@iconify-icons/ic/outline-wb-sunny';
 	import icRefresh from '@iconify-icons/ic/outline-refresh';
 
 	// Import functions
@@ -46,6 +47,21 @@
 		dispatch('itemclick', { surah: surah });
 	}
 
+	function toggleNightMode() {
+		let html = document.documentElement;
+		let darkMode = localStorage.getItem('dark-mode') === '1';
+
+		if (darkMode) {
+			// Already dark, change to light
+			localStorage.removeItem('dark-mode');
+			html.classList.remove('dark');
+		} else {
+			// Theme is light, change to dark
+			localStorage.setItem('dark-mode', '1');
+			html.classList.add('dark');
+		}
+	}
+
 	// Lifecycle function
 	onMount(() => {
 		loadData();
@@ -61,6 +77,11 @@
 			on:click={() => {
 				window.location.reload();
 			}}
+		/>
+		<Button
+			icon={icTheme}
+			disabled={dataLoading}
+			on:click={() => toggleNightMode()}
 		/>
 	</div>
 	<div class="container" data-scrollbar>

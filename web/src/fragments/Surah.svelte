@@ -225,6 +225,7 @@
 		justify-content: center;
 
 		button {
+			color: var(--fg);
 			font-size: 1rem;
 			padding: 8px;
 			margin: 8px;

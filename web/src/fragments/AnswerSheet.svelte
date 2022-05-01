@@ -116,6 +116,7 @@
 			font-size: 1.1rem;
 			padding: 8px;
 			margin: 4px;
+			color: var(--fg);
 			background-color: transparent;
 			border: 1px solid var(--border);
 			border-radius: 8px;
