@@ -7,19 +7,23 @@
 	import type {
 		Surah as TSurah,
 		Word as TWord,
-	} from '../components/Surah.svelte';
+	} from '../fragments/Surah.svelte';
 
 	// Local variables
 	let surahRef: Surah;
 	let activeSurah: TSurah | undefined;
 	let activeWord: TWord | undefined;
 
+	// Dialog error props
+	let dlgErrorVisible: boolean = false;
+	let dlgErrorMessage: string = '';
+
 	// Lifecycle function
 	onMount(() => {
 		history.pushState(null, document.title, location.href);
 	});
 
-	// Event handler
+	// Event handler for list surah
 	function handleListSurahLoaded(e: CustomEvent) {
 		let surah = e.detail.surah;
 		if (activeSurah == null) {
@@ -31,14 +35,24 @@
 		activeSurah = e.detail.surah as TSurah;
 	}
 
-	function handleWordActived(e: CustomEvent) {
-		console.log('ACTIVE WORD:', e.detail.word);
-		activeWord = e.detail.word as TWord;
+	// Event handler for surah
+	function handleSurahActived(e: CustomEvent) {
+		let newActiveWord = e.detail.word as TWord;
+		if (newActiveWord.id !== activeWord?.id) {
+			activeWord = newActiveWord;
+		}
 	}
 
+	// Event handler for answer sheet
 	function handleAnswerSubmit(e: CustomEvent) {
 		let answer = e.detail.answer;
 		surahRef?.saveTranslation(activeWord, answer);
+	}
+
+	// Common event handler for fragments
+	function handleFragmentError(e: CustomEvent) {
+		dlgErrorVisible = true;
+		dlgErrorMessage = e.detail;
 	}
 </script>
 
@@ -50,13 +64,15 @@
 		active={activeSurah}
 		on:loaded={handleListSurahLoaded}
 		on:itemclick={handleListSurahClick}
+		on:error={handleFragmentError}
 	/>
 	{#if activeSurah != null}
 		<Surah
 			bind:this={surahRef}
 			class="surah"
 			surah={activeSurah}
-			on:actived={handleWordActived}
+			on:actived={handleSurahActived}
+			on:error={handleFragmentError}
 		/>
 	{/if}
 	{#if activeWord != null}
@@ -64,10 +80,20 @@
 			class="answer"
 			word={activeWord}
 			on:submit={handleAnswerSubmit}
+			on:error={handleFragmentError}
 		/>
 	{/if}
 
-	<Dialog title="Kalimah" closable />
+	{#if dlgErrorVisible}
+		<Dialog
+			title="Error"
+			isError={true}
+			closable={false}
+			on:mainclick={() => (dlgErrorVisible = false)}
+		>
+			<p slot="content">{dlgErrorMessage}</p>
+		</Dialog>
+	{/if}
 </div>
 
 <style lang="less">

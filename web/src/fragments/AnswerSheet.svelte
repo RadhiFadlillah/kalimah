@@ -27,7 +27,7 @@
 		try {
 			choices = await getRequest(`/api/choice/${word?.id}`);
 		} catch (err) {
-			console.error(err);
+			dispatch('error', String(err));
 		}
 
 		dataLoading = false;
@@ -72,7 +72,7 @@
 </script>
 
 <div class="root {className}">
-	<p class="arabic">{word.arabic}</p>
+	<p class="arabic">{word?.arabic}</p>
 	<div class="container">
 		{#each choices as choice}
 			<button

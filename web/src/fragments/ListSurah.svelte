@@ -1,9 +1,15 @@
 <script lang="ts">
-	// Import
-	import { onMount, createEventDispatcher, tick } from 'svelte';
-	import { getRequest } from '../libs/api-request';
+	// Import components
+	import Button from '../components/Button.svelte';
 	import LoadingCover from '../components/LoadingCover.svelte';
+
+	// Import icons and types
 	import type { Surah } from './Surah.svelte';
+	import icRefresh from '@iconify-icons/ic/outline-refresh';
+
+	// Import functions
+	import { getRequest } from '../libs/api-request';
+	import { onMount, createEventDispatcher, tick } from 'svelte';
 	const dispatch = createEventDispatcher();
 
 	// Props
@@ -30,7 +36,7 @@
 			await tick();
 			dispatch('loaded', { surah: lastTranslatedSurah });
 		} catch (err) {
-			console.error(err);
+			dispatch('error', String(err));
 		}
 
 		dataLoading = false;
@@ -47,7 +53,16 @@
 </script>
 
 <div class="root {className}">
-	<p class="header">Surah</p>
+	<div class="header">
+		<p>Surah</p>
+		<Button
+			icon={icRefresh}
+			disabled={dataLoading}
+			on:click={() => {
+				window.location.reload();
+			}}
+		/>
+	</div>
 	<div class="container" data-scrollbar>
 		{#each listSurah as surah, idx (surah.id)}
 			<div
@@ -77,15 +92,21 @@
 		position: relative;
 	}
 
-	p.header {
-		flex-shrink: 0;
-		padding: 0 8px;
-		font-size: 1.2rem;
-		font-variation-settings: 'wght' 600;
+	div.header {
+		display: flex;
+		align-items: center;
+		flex-flow: row nowrap;
 		border-bottom: 1px solid var(--border);
-		text-align: center;
-		color: var(--main);
-		line-height: 36px;
+		flex-shrink: 0;
+
+		p {
+			flex: 1 0;
+			font-size: 1.2rem;
+			font-variation-settings: 'wght' 600;
+			text-align: center;
+			color: var(--main);
+			line-height: 36px;
+		}
 	}
 
 	div.item {

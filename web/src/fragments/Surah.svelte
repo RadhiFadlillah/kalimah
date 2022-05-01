@@ -78,7 +78,7 @@
 			await tick();
 			focusToActive();
 		} catch (err) {
-			console.error(err);
+			dispatch('error', String(err));
 		}
 
 		dataLoading = false;
@@ -138,9 +138,6 @@
 
 		tick().then(() => focusToActive());
 	}
-
-	// Lifecycle function
-	onMount(() => loadData(surah?.id));
 
 	// Reload data whenever surah changed
 	$: loadData(surah?.id);
