@@ -17,6 +17,7 @@
 
 	// Dialog ayah props
 	let dlgAyahNumber: number = 0;
+	let dlgAyahTitle: string | undefined;
 	let dlgAyahVisible: boolean = false;
 
 	// Dialog error props
@@ -51,6 +52,7 @@
 
 	function handleSurahAyahClick(e: CustomEvent) {
 		dlgAyahNumber = e.detail.ayah as number;
+		dlgAyahTitle = `${activeSurah?.name} ${dlgAyahNumber}`;
 		dlgAyahVisible = true;
 	}
 
@@ -117,6 +119,7 @@
 	{#if dlgAyahVisible}
 		<Ayah
 			ayah={dlgAyahNumber}
+			title={dlgAyahTitle}
 			surah={activeSurah?.id || 1}
 			on:error={handleAyahError}
 			on:close={() => (dlgAyahVisible = false)}

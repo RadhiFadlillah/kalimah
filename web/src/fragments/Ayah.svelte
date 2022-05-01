@@ -13,7 +13,7 @@
 	}
 
 	// Properties
-	// export let title: string;
+	export let title: string = 'Tafsir dan Terjemah';
 	export let ayah: number;
 	export let surah: number;
 
@@ -38,13 +38,7 @@
 	onMount(() => loadData());
 </script>
 
-<Dialog
-	class="dialog-ayah"
-	title="Tafsir dan Terjemah"
-	loading={dataLoading}
-	on:close
-	on:mainclick
->
+<Dialog class="dialog-ayah" {title} loading={dataLoading} on:close on:mainclick>
 	<div slot="content" class="tafsir-content">
 		<p class="arabic">{data?.arabic}</p>
 		<div class="trans">{@html data?.translation}</div>
@@ -73,7 +67,7 @@
 		.arabic {
 			font-size: 2rem;
 			font-family: 'KFGQPC-HAFS';
-			text-align: start;
+			text-align: center;
 			color: var(--fg);
 			direction: rtl;
 		}
