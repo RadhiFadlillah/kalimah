@@ -37,13 +37,14 @@
 	}
 
 	function handleListSurahClick(e: CustomEvent) {
+		activeWord = undefined;
 		activeSurah = e.detail.surah as TSurah;
 	}
 
 	// Event handler for surah
 	function handleSurahActived(e: CustomEvent) {
 		let newActiveWord = e.detail.word as TWord;
-		if (newActiveWord.id !== activeWord?.id) {
+		if (newActiveWord?.id !== activeWord?.id) {
 			activeWord = newActiveWord;
 		}
 	}
