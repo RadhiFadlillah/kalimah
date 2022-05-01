@@ -5,7 +5,7 @@ config.toml
 # Exclude executable
 kalimah
 kalimah-dev
-kalimah.db
+kalimah.db*
 
 # Exclude web dev files
 node_modules/

@@ -13,7 +13,7 @@ func Open(dbPath string) (db *sqlx.DB, err error) {
 	// Prepare DSN
 	q := url.Values{}
 	q.Add("_pragma", "foreign_keys=1")
-	q.Add("_pragma", "synchronous=0")
+	q.Add("_pragma", "journal_mode=WAL")
 	dsn := dbPath + "?" + q.Encode()
 
 	// Connect to database
