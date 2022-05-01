@@ -152,6 +152,5 @@
 	.app :global(.surah),
 	.app :global(.answer) {
 		grid-column: 2;
-		max-width: 1080px;
 	}
 </style>
