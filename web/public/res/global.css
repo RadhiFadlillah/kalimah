@@ -5,17 +5,17 @@ Colors used here taken from Tailwind palette https://tailwindcolor.com/
 
 /* prettier-ignore */
 :root {
-	--main   : #689F38; /* Light Green 700 */
-	--main-bg: #DCEDC8; /* Light Green 100 */
-	
-	--bg          : #EFEBE9;  /* Brown 50 */
-	--bg-secondary: #FAFAFA;  /* Gray 50 */
-	--bg-disabled : #D7CCC8;  /* Brown 100 */
-	--bg-hover    : #D7CCC8;  /* Brown 100 */
+	--main   : #4D7C0F; /* Lime 700 */
+	--main-bg: #ECFCCB; /* Lime 100 */
+
+	--bg          : #ffffff;  /* White */
+	--bg-secondary: #f9fafb;  /* Cool Gray 50 */
+	--bg-disabled : #f3f4f6;  /* Cool Gray 100 */
+	--bg-hover    : #f3f4f6;  /* Cool Gray 100 */
 	--bg-error    : #fef2f2;  /* Red 50 */
 	--bg-warning  : #fefce8;  /* Yellow 50 */
-	--bg-scrollbar: #A1887F;  /* Brown 300 */
-	--bg-tooltip  : #4E342E;  /* Brown 800 */
+	--bg-scrollbar: #d1d5db;  /* Cool Gray 300 */
+	--bg-tooltip  : #1f2937;  /* Cool Gray 800 */
 
 	--fg          : #1f2937;  /* Cool Gray 800 */
 	--fg-secondary: #52525b;  /* Cool Gray 600 */
@@ -25,8 +25,8 @@ Colors used here taken from Tailwind palette https://tailwindcolor.com/
 	--fg-warning  : #ca8a04;  /* Yellow 600 */
 	--fg-tooltip  : #ffffff;  /* White */
 
-	--border          : #BCAAA4;  /* Brown 200 */
-	--border-secondary: #A1887F;  /* Brown 300 */
+	--border          : #e5e7eb;  /* Cool Gray 200 */
+	--border-secondary: #d1d5db;  /* Cool Gray 300 */
 	--border-focus: var(--main);
 
 	--bg-active   : var(--main-bg);
