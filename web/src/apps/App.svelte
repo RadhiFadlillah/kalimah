@@ -138,7 +138,7 @@
 		min-height: 0;
 		overflow: hidden;
 		color: var(--fg);
-		background-color: var(--border);
+		background-color: var(--bg);
 		position: relative;
 		display: grid;
 		gap: 1px;
@@ -150,10 +150,15 @@
 		width: 220px;
 		grid-row: 1/-1;
 		grid-column: 1;
+		border-right: 1px solid var(--border);
 	}
 
 	.app :global(.surah),
 	.app :global(.answer) {
 		grid-column: 2;
+	}
+
+	.app :global(.answer) {
+		border-top: 1px solid var(--border);
 	}
 </style>
