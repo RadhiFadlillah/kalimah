@@ -12,6 +12,7 @@
 		position: number;
 		arabic: string;
 		translation: string;
+		isSeparator: boolean;
 	}
 </script>
 
@@ -83,12 +84,6 @@
 	}
 
 	// Local function
-	function isAyahSeparator(idx: number): boolean {
-		let currentAyah = visibleWords[idx]?.ayah;
-		let nextAyah = visibleWords[idx + 1]?.ayah;
-		return currentAyah !== nextAyah;
-	}
-
 	function toArabicNumeral(number: number): string {
 		let result: string = '';
 		for (const c of number.toString()) {
@@ -169,7 +164,7 @@
 				<p class="translation">{word.translation}</p>
 			</div>
 
-			{#if isAyahSeparator(idx)}
+			{#if word.isSeparator}
 				<button
 					class="number"
 					disabled={word.translation === ''}

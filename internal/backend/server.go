@@ -142,9 +142,11 @@ func (s *Server) GetSurahWords(w http.ResponseWriter, r *http.Request, ps httpro
 		ayah_range AS (
 			SELECT start, end FROM surah WHERE id = ?)
 		SELECT w.id, w.ayah-ar.start+1 ayah, w.position, w.arabic,
-			IIF(w.id <= lw.id, translation, '') translation
+			IIF(w.id <= lw.id, translation, '') translation,
+			w.ayah <> LEAD(w.ayah, 1, w.ayah+1) OVER (ORDER BY w.ayah) is_separator
 		FROM word w, ayah_range ar, last_word lw
-		WHERE w.ayah >= ar.start AND w.ayah <= ar.end`, surah)
+		WHERE w.ayah >= ar.start AND w.ayah <= ar.end
+		ORDER BY w.id`, surah)
 	if err != nil && err != sql.ErrNoRows {
 		return
 	}
@@ -244,7 +246,7 @@ func (s *Server) SubmitAnswer(w http.ResponseWriter, r *http.Request, ps httprou
 	var correctAnswer string
 	err = s.DB.Get(&correctAnswer,
 		"SELECT translation FROM word WHERE id = ?",
-		answer.WordID)
+		answer.Word.ID)
 	if err != nil {
 		return
 	}
@@ -253,11 +255,14 @@ func (s *Server) SubmitAnswer(w http.ResponseWriter, r *http.Request, ps httprou
 	var responseCode int
 	if answer.Answer == correctAnswer {
 		responseCode = 1
-		_, err = s.DB.Exec(
-			"UPDATE tracker SET last_word = ? WHERE id = 1",
-			answer.WordID)
-		if err != nil {
-			return
+
+		if answer.Word.IsSeparator {
+			_, err = s.DB.Exec(
+				"UPDATE tracker SET last_word = ? WHERE id = 1",
+				answer.Word.ID)
+			if err != nil {
+				return
+			}
 		}
 	}
 

@@ -39,7 +39,7 @@
 
 		let resp: any;
 		try {
-			let body = { wordId: word.id, answer: answer };
+			let body = { word: word, answer: answer };
 			resp = await postRequest('/api/answer', body);
 		} catch (err) {
 			console.error(err);
