@@ -27,7 +27,7 @@
 	export { className as class };
 	export let surah: Surah | undefined;
 	export let title: string = '';
-	export let activeWord: Word | undefined;
+	export let activeWord: Word | undefined = undefined;
 
 	// Constants
 	const ayahPerPage = 30;
