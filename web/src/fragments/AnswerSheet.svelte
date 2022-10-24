@@ -98,7 +98,7 @@
 
 	p.arabic {
 		padding: 16px;
-		font-size: 5rem;
+		font-size: 4rem;
 		font-family: 'KFGQPC-HAFS';
 		text-align: center;
 		color: var(--main);
@@ -137,11 +137,21 @@
 	}
 
 	div.root :global(.answer-loading) {
-		z-index: 1;
 		position: absolute;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
+	}
+
+	@media screen and (max-width: 600px) {
+		div.root {
+			flex-flow: column nowrap;
+		}
+
+		p.arabic {
+			font-size: 3rem;
+			padding-bottom: 0;
+		}
+
+		div.container {
+			justify-content: center;
+		}
 	}
 </style>

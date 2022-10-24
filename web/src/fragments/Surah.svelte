@@ -24,8 +24,10 @@
 
 	// Props
 	let className: string = '';
-	export let surah: Surah | undefined;
 	export { className as class };
+	export let surah: Surah | undefined;
+	export let title: string = '';
+	export let activeWord: Word | undefined;
 
 	// Constants
 	const ayahPerPage = 30;
@@ -39,24 +41,30 @@
 	let dataLoading: boolean = false;
 
 	// Reactive variables
-	$: headerTitle = ((): string => {
-		if (surah == null) return '';
-		if (dataLoading) return surah!.name;
-
-		let nWords = words.length;
-		let nTranslatedWords = words.filter((w) => w.translation !== '').length;
-		let progress = Math.round((nTranslatedWords / nWords) * 100) || 0;
-		return `(${progress}%) • ${surah!.name} • ${nTranslatedWords} / ${nWords}`;
-	})();
 	$: visibleWords = words.filter((w) => {
 		let startingAyah = (currentPage - 1) * ayahPerPage + 1;
 		let endingAyah = currentPage * ayahPerPage;
 		return w.ayah >= startingAyah && w.ayah <= endingAyah;
 	});
-	$: activeWord = ((): Word | undefined => {
+
+	$: {
+		// Adjust title
+		if (surah == null) title = '';
+		else if (dataLoading) title = surah!.name;
+		else {
+			let surahName = surah!.name;
+			let nWords = words.length;
+			let nTranslatedWords = words.filter((w) => w.translation !== '').length;
+			let progress = Math.round((nTranslatedWords / nWords) * 100) || 0;
+			title = `(${progress}%) • ${surahName} • ${nTranslatedWords} / ${nWords}`;
+		}
+	}
+
+	$: {
+		// Get active word
 		let realActiveWord = words.find((w) => w.translation === '');
-		return visibleWords.find((w) => w.id === realActiveWord?.id);
-	})();
+		activeWord = visibleWords.find((w) => w.id === realActiveWord?.id);
+	}
 
 	// API function
 	async function loadData(surah?: number) {
@@ -138,13 +146,9 @@
 
 	// Reload data whenever surah changed
 	$: loadData(surah?.id);
-
-	// Dispatch active word whenever it changed
-	$: dispatch('actived', { word: activeWord });
 </script>
 
 <div class="root {className}">
-	<p class="header">{headerTitle}</p>
 	<div
 		class="container"
 		data-scrollbar
@@ -196,18 +200,6 @@
 		display: flex;
 		flex-flow: column nowrap;
 		background-color: var(--bg);
-		position: relative;
-	}
-
-	p.header {
-		flex-shrink: 0;
-		padding: 0 8px;
-		font-size: 1.2rem;
-		font-variation-settings: 'wght' 600;
-		border-bottom: 1px solid var(--border);
-		text-align: center;
-		color: var(--main);
-		line-height: 36px;
 	}
 
 	div.footer {
@@ -311,14 +303,5 @@
 				color: var(--fg-disabled);
 			}
 		}
-	}
-
-	div.root :global(.surah-loading) {
-		z-index: 1;
-		position: absolute;
-		top: 37px;
-		left: 0;
-		right: 0;
-		bottom: 0;
 	}
 </style>

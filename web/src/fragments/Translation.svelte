@@ -38,7 +38,13 @@
 	onMount(() => loadData());
 </script>
 
-<Dialog class="dialog-ayah" {title} loading={dataLoading} on:close on:mainclick>
+<Dialog
+	{title}
+	loading={dataLoading}
+	class="dialog-translation"
+	on:close
+	on:mainclick
+>
 	<div slot="content" class="tafsir-content">
 		<p class="arabic">{data?.arabic}</p>
 		<div class="trans">{@html data?.translation}</div>
@@ -47,7 +53,7 @@
 </Dialog>
 
 <style lang="less">
-	:global(.dialog-ayah) {
+	:global(.dialog-translation) {
 		width: 850px;
 		max-width: 90vw !important;
 		max-height: 90vh !important;

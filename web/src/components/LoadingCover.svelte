@@ -14,7 +14,11 @@
 		height: 100%;
 		opacity: 0.8;
 		overflow: hidden;
-		position: relative;
-		pointer-events: none;
+		z-index: 100;
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
 	}
 </style>
