@@ -44,7 +44,7 @@
 	async function submitAnswer(choice: Choice) {
 		if (word == null || dataLoading) return;
 
-		// If choice is incorrect, reload choices if necessary
+		// If choice is incorrect, stop and reload choices if necessary
 		if (!choice.isCorrect) {
 			wrongChoices = [...wrongChoices, choice.text];
 			if (wrongChoices.length >= 5) {
@@ -53,13 +53,13 @@
 			return;
 		}
 
-		// If this word is separator, save it in database
+		// If this word is separator, track it in database
 		if (word.isSeparator) {
 			dataLoading = true;
 			let errorOccured = false;
 
 			try {
-				await postRequest('/api/answer', word);
+				await postRequest('/api/track', word);
 			} catch (err) {
 				console.error(err);
 				errorOccured = true;

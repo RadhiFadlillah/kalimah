@@ -31,10 +31,10 @@ func (s *Server) Serve(port int) error {
 	router.GET("/res/*filepath", s.ServeFile)
 	router.GET("/build/*filepath", s.ServeFile)
 	router.GET("/api/surah", s.GetSurah)
-	router.GET("/api/surah/:surah/word", s.GetSurahWords)
-	router.GET("/api/surah/:surah/ayah/:ayah", s.GetSurahAyah)
+	router.GET("/api/words/surah/:surah", s.GetWords)
+	router.GET("/api/tafsir/:surah/ayah/:ayah", s.GetTafsir)
 	router.GET("/api/choice/:word-id", s.GetChoices)
-	router.POST("/api/answer", s.SubmitAnswer)
+	router.POST("/api/track", s.TrackWord)
 
 	router.PanicHandler = func(w http.ResponseWriter, r *http.Request, arg interface{}) {
 		http.Error(w, fmt.Sprintf("unrecovered error: %v", arg), 500)
@@ -125,7 +125,7 @@ func (s *Server) GetSurah(w http.ResponseWriter, r *http.Request, ps httprouter.
 	err = json.NewEncoder(w).Encode(&listSurah)
 }
 
-func (s *Server) GetSurahWords(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func (s *Server) GetWords(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	var err error
 	defer func() {
 		if err != nil {
@@ -155,7 +155,7 @@ func (s *Server) GetSurahWords(w http.ResponseWriter, r *http.Request, ps httpro
 	err = json.NewEncoder(w).Encode(&words)
 }
 
-func (s *Server) GetSurahAyah(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func (s *Server) GetTafsir(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	var err error
 	defer func() {
 		if err != nil {
@@ -228,7 +228,7 @@ func (s *Server) GetChoices(w http.ResponseWriter, r *http.Request, ps httproute
 	err = json.NewEncoder(w).Encode(&choices)
 }
 
-func (s *Server) SubmitAnswer(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func (s *Server) TrackWord(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	// Prepare error handling
 	var err error
 	defer func() {

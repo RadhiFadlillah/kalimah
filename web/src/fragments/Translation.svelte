@@ -26,7 +26,7 @@
 		dataLoading = true;
 
 		try {
-			data = await getRequest(`/api/surah/${surah}/ayah/${ayah}`);
+			data = await getRequest(`/api/tafsir/${surah}/ayah/${ayah}`);
 		} catch (err) {
 			dispatch('error', String(err));
 		}

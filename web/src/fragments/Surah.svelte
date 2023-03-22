@@ -72,7 +72,7 @@
 		dataLoading = true;
 
 		try {
-			words = await getRequest(`/api/surah/${surah}/word`);
+			words = await getRequest(`/api/words/surah/${surah}`);
 			let maxAyah: number = words
 				.map((w: Word) => w.ayah)
 				.reduce((p, c) => (p > c ? p : c), 1);
