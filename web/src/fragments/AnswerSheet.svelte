@@ -1,9 +1,17 @@
+<script lang="ts" context="module">
+	export interface Choice {
+		text: string;
+		isCorrect: boolean;
+	}
+</script>
+
 <script lang="ts">
 	// Import functions
 	import { onMount, createEventDispatcher } from 'svelte';
 	import { getRequest, postRequest } from '../libs/api-request';
 	import LoadingCover from '../components/LoadingCover.svelte';
 	import type { Word } from './Surah.svelte';
+	import { text } from 'svelte/internal';
 	const dispatch = createEventDispatcher();
 
 	// Props
@@ -12,7 +20,7 @@
 	export { className as class };
 
 	// Local variables
-	let choices: string[] = [];
+	let choices: Choice[] = [];
 	let wrongChoices: string[] = [];
 	let dataLoading: boolean = false;
 
@@ -20,7 +28,6 @@
 	async function loadChoices(word?: Word) {
 		if (word == null || dataLoading) return;
 
-		choices = [];
 		wrongChoices = [];
 		dataLoading = true;
 
@@ -28,40 +35,41 @@
 			choices = await getRequest(`/api/choice/${word?.id}`);
 		} catch (err) {
 			dispatch('error', String(err));
+			choices = [];
 		}
 
 		dataLoading = false;
 	}
 
-	async function submitAnswer(answer: string) {
+	async function submitAnswer(choice: Choice) {
 		if (word == null || dataLoading) return;
-		dataLoading = true;
 
-		let resp: any;
-		try {
-			let body = { word: word, answer: answer };
-			resp = await postRequest('/api/answer', body);
-		} catch (err) {
-			console.error(err);
-			resp = -1;
-		}
-
-		dataLoading = false;
-		if (resp === -1) {
+		// If choice is incorrect, reload choices if necessary
+		if (!choice.isCorrect) {
+			wrongChoices = [...wrongChoices, choice.text];
+			if (wrongChoices.length >= 5) {
+				await loadChoices(word);
+			}
 			return;
 		}
 
-		if (resp === '0') {
-			wrongChoices = [...wrongChoices, answer];
-			if (wrongChoices.length >= 5) {
-				await loadChoices(word);
-				return;
+		// If this word is separator, save it in database
+		if (word.isSeparator) {
+			dataLoading = true;
+			let errorOccured = false;
+
+			try {
+				await postRequest('/api/answer', word);
+			} catch (err) {
+				console.error(err);
+				errorOccured = true;
 			}
+
+			dataLoading = false;
+			if (errorOccured) return;
 		}
 
-		if (resp === '1') {
-			dispatch('submit', { answer: answer });
-		}
+		dispatch('submit', { answer: choice.text });
 	}
 
 	// Lifecycle function
@@ -76,9 +84,9 @@
 	<div class="container">
 		{#each choices as choice}
 			<button
-				class:wrong={wrongChoices.includes(choice)}
+				class:wrong={wrongChoices.includes(choice.text)}
 				on:click={() => submitAnswer(choice)}
-				>{choice}
+				>{choice.text}
 			</button>
 		{/each}
 	</div>

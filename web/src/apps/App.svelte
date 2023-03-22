@@ -49,13 +49,6 @@
 	}
 
 	// Event handler for surah
-	function handleSurahActived(e: CustomEvent) {
-		let newActiveWord = e.detail.word as TWord;
-		if (newActiveWord?.id !== activeWord?.id) {
-			activeWord = newActiveWord;
-		}
-	}
-
 	function handleSurahAyahClick(e: CustomEvent) {
 		dlgTransNumber = e.detail.ayah as number;
 		dlgTransTitle = `${activeSurah?.name} ${dlgTransNumber}`;

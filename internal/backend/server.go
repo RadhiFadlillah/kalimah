@@ -202,10 +202,12 @@ func (s *Server) GetChoices(w http.ResponseWriter, r *http.Request, ps httproute
 	strWordId := ps.ByName("word-id")
 	wordId, _ := strconv.Atoi(strWordId)
 
-	answers := []string{}
-	err = s.DB.Select(&answers,
+	choices := []Choice{}
+	err = s.DB.Select(&choices,
 		`WITH correct_answer AS (
-			SELECT translation FROM word w WHERE id = ?),
+			SELECT translation
+			FROM word w
+			WHERE id = ?),
 		wrong_answer AS (
 			SELECT DISTINCT w.translation 
 			FROM word w, correct_answer cw
@@ -213,17 +215,17 @@ func (s *Server) GetChoices(w http.ResponseWriter, r *http.Request, ps httproute
 			ORDER BY RANDOM()
 			LIMIT 9),
 		all_answer AS (
-			SELECT * FROM correct_answer
+			SELECT translation text, 1 is_correct FROM correct_answer
 			UNION ALL
-			SELECT * FROM wrong_answer)
-		SELECT translation answer FROM all_answer 
-		ORDER BY LOWER(answer)`, wordId)
+			SELECT translation text, 0 is_correct FROM wrong_answer)
+		SELECT text, is_correct FROM all_answer 
+		ORDER BY LOWER(text)`, wordId)
 	if err != nil && err != sql.ErrNoRows {
 		return
 	}
 
 	w.Header().Add("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(&answers)
+	err = json.NewEncoder(w).Encode(&choices)
 }
 
 func (s *Server) SubmitAnswer(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
@@ -236,36 +238,17 @@ func (s *Server) SubmitAnswer(w http.ResponseWriter, r *http.Request, ps httprou
 	}()
 
 	// Decode response
-	var answer Answer
-	err = json.NewDecoder(r.Body).Decode(&answer)
-	if err != nil {
-		return
-	}
-
-	// Compare with database
-	var correctAnswer string
-	err = s.DB.Get(&correctAnswer,
-		"SELECT translation FROM word WHERE id = ?",
-		answer.Word.ID)
+	var currentWord Word
+	err = json.NewDecoder(r.Body).Decode(&currentWord)
 	if err != nil {
 		return
 	}
 
 	// Update tracker
-	var responseCode int
-	if answer.Answer == correctAnswer {
-		responseCode = 1
-
-		if answer.Word.IsSeparator {
-			_, err = s.DB.Exec(
-				"UPDATE tracker SET last_word = ? WHERE id = 1",
-				answer.Word.ID)
-			if err != nil {
-				return
-			}
-		}
+	_, err = s.DB.Exec(
+		"UPDATE tracker SET last_word = ? WHERE id = 1",
+		currentWord.ID)
+	if err != nil {
+		return
 	}
-
-	w.Header().Add("Content-Type", "text/plain")
-	_, err = fmt.Fprint(w, responseCode)
 }

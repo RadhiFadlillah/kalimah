@@ -23,7 +23,7 @@ type Word struct {
 	IsSeparator bool   `db:"is_separator" json:"isSeparator"`
 }
 
-type Answer struct {
-	Word   Word   `json:"word"`
-	Answer string `json:"answer"`
+type Choice struct {
+	Text      string `db:"text"       json:"text"`
+	IsCorrect bool   `db:"is_correct" json:"isCorrect"`
 }
