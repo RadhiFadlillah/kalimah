@@ -130,6 +130,8 @@
 		let nextIsVisible = words.findIndex((w) => w.id === next) >= 0;
 		if (!nextIsVisible && currentPage < maxPage) {
 			changePage(currentPage + 1);
+		} else {
+			focusToActive();
 		}
 	}
 
