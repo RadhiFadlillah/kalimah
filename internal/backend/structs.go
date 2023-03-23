@@ -21,6 +21,7 @@ type Word struct {
 	Arabic      string   `db:"arabic"       json:"arabic"`
 	Translation string   `db:"translation"  json:"translation"`
 	Answered    bool     `db:"answered"     json:"answered"`
+	Disabled    bool     `db:"disabled"     json:"-"`
 	IsSeparator bool     `db:"is_separator" json:"isSeparator"`
 	Choices     []Choice `json:"choices"`
 }

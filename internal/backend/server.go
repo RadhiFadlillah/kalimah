@@ -153,13 +153,29 @@ func (s *Server) GetWords(w http.ResponseWriter, r *http.Request, ps httprouter.
 		return
 	}
 
+	// Fetch the last answered page
+	var lastAnsweredPage int
+	err = tx.Get(&lastAnsweredPage,
+		`WITH last_word AS (
+			SELECT IFNULL(last_word, 0) id FROM tracker WHERE id = 1),
+		last_ayah AS (
+			SELECT w.ayah FROM word w, last_word lw WHERE w.id = lw.id+1),
+		last_surah AS (
+			SELECT *
+			FROM surah s, last_ayah la
+			WHERE s.start <= la.ayah AND s.end >= la.ayah)
+		SELECT CEIL((ayah-start+1)/30.0) page FROM last_surah`)
+	if err != nil {
+		return
+	}
+
 	// Adjust pagination
 	nAyahPerPage := 30
 	maxPage := int(math.Ceil(float64(nAyah) / float64(nAyahPerPage)))
-	if page < 1 {
-		page = 1
-	} else if page > maxPage {
+	if page > maxPage {
 		page = maxPage
+	} else if page <= 0 {
+		page = lastAnsweredPage
 	}
 
 	// Fetch words for this page
@@ -168,14 +184,16 @@ func (s *Server) GetWords(w http.ResponseWriter, r *http.Request, ps httprouter.
 		`WITH last_word AS (
 			SELECT IFNULL(last_word, 0) id FROM tracker WHERE id = 1),
 		ayah_range AS (
-			SELECT (30*(?-1) + 1) start, MIN(end, 30*?) end 
+			SELECT start,
+				(start + 30*(?-1)) page_start, 
+				MIN(end, start+30*?-1) page_end
 			FROM surah
 			WHERE id = ?)
-		SELECT w.id, w.ayah-ar.start+1 ayah, w.position,
-			w.arabic, w.translation, w.id <= lw.id answered,
+		SELECT w.id, w.ayah-ar.start+1 ayah, w.position, w.arabic,
+			w.translation, w.id <= lw.id answered, w.id > lw.id+1 disabled,
 			w.ayah <> LEAD(w.ayah, 1, w.ayah+1) OVER (ORDER BY w.ayah) is_separator
 		FROM word w, ayah_range ar, last_word lw
-		WHERE w.ayah >= ar.start AND w.ayah <= ar.end
+		WHERE w.ayah >= ar.page_start AND w.ayah <= ar.page_end
 		ORDER BY w.id`, page, page, surah)
 	if err != nil && err != sql.ErrNoRows {
 		return
@@ -226,15 +244,26 @@ func (s *Server) GetWords(w http.ResponseWriter, r *http.Request, ps httprouter.
 		words[i].Choices = choices
 	}
 
+	// Check if this page is disabled
+	pageDisabled := true
+	for i := range words {
+		if !words[i].Disabled {
+			pageDisabled = false
+			break
+		}
+	}
+
 	// Create return data
 	data := struct {
 		CurrentPage int    `json:"currentPage"`
 		MaxPage     int    `json:"maxPage"`
 		Words       []Word `json:"words"`
+		Disabled    bool   `json:"disabled"`
 	}{
 		CurrentPage: page,
 		MaxPage:     maxPage,
 		Words:       words,
+		Disabled:    pageDisabled,
 	}
 
 	w.Header().Add("Content-Type", "application/json")

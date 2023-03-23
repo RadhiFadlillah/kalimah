@@ -26,12 +26,13 @@
 		currentPage: number;
 		maxPage: number;
 		words: Word[];
+		disabled: boolean;
 	}
 </script>
 
 <script lang="ts">
 	import LoadingCover from '../components/LoadingCover.svelte';
-	import { createEventDispatcher, tick } from 'svelte';
+	import { createEventDispatcher, onMount, tick } from 'svelte';
 	import { getRequest } from '../libs/api-request';
 	const dispatch = createEventDispatcher();
 
@@ -47,26 +48,30 @@
 	// Local variables
 	let words: Word[] = [];
 	let maxPage: number;
-	let currentPage: number = 1;
-	let container: HTMLElement;
+	let currentPage: number;
+	let pageDisabled: boolean = false;
 	let dataLoading: boolean = false;
+	let container: HTMLElement;
 
 	// Reactive variables
 	$: {
-		activeWord = words.find((w) => !w.answered);
+		if (pageDisabled) activeWord = undefined;
+		else activeWord = words.find((w) => !w.answered);
 	}
 
 	// API function
-	async function loadData(surah?: number) {
+	async function loadData() {
 		words = [];
 		dataLoading = true;
 
 		try {
-			let url = `/api/words/surah/${surah}/page/${currentPage}`;
+			let url = `/api/words/surah/${surah?.id}/page/${currentPage || 0}`;
 			let resp = (await getRequest(url)) as FetchResponse;
 
-			maxPage = resp.maxPage;
 			words = resp.words;
+			maxPage = resp.maxPage;
+			currentPage = resp.currentPage;
+			pageDisabled = resp.disabled;
 
 			await tick();
 			focusToActive();
@@ -99,15 +104,15 @@
 			e.stopPropagation();
 			focusToActive();
 		} else if (e.key === '-' && currentPage > 1) {
-			handlePagination(currentPage - 1);
+			changePage(currentPage - 1);
 		} else if (e.key === '+' && currentPage < maxPage) {
-			handlePagination(currentPage + 1);
+			changePage(currentPage + 1);
 		}
 	}
 
-	function handlePagination(page: number) {
+	function changePage(page: number) {
 		currentPage = page;
-		tick().then(() => focusToActive());
+		loadData();
 	}
 
 	function handleAyahClick(ayah: number) {
@@ -124,14 +129,11 @@
 		let next = word.id + 1;
 		let nextIsVisible = words.findIndex((w) => w.id === next) >= 0;
 		if (!nextIsVisible && currentPage < maxPage) {
-			currentPage++;
+			changePage(currentPage + 1);
 		}
-
-		tick().then(() => focusToActive());
 	}
 
-	// Reload data whenever surah or page changed
-	$: loadData(surah?.id);
+	onMount(() => loadData());
 </script>
 
 <div class="root {className}">
@@ -169,7 +171,7 @@
 		<div class="footer">
 			{#each [...Array(maxPage).keys()].map((k) => k + 1) as page}
 				<button
-					on:click={() => handlePagination(page)}
+					on:click={() => changePage(page)}
 					class:active={page === currentPage}
 					>{page}
 				</button>
