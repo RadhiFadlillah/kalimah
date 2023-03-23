@@ -15,12 +15,14 @@ type Ayah struct {
 }
 
 type Word struct {
-	ID          int    `db:"id"           json:"id"`
-	Ayah        int    `db:"ayah"         json:"ayah"`
-	Position    int    `db:"position"     json:"position"`
-	Arabic      string `db:"arabic"       json:"arabic"`
-	Translation string `db:"translation"  json:"translation"`
-	IsSeparator bool   `db:"is_separator" json:"isSeparator"`
+	ID          int      `db:"id"           json:"id"`
+	Ayah        int      `db:"ayah"         json:"ayah"`
+	Position    int      `db:"position"     json:"position"`
+	Arabic      string   `db:"arabic"       json:"arabic"`
+	Translation string   `db:"translation"  json:"translation"`
+	Answered    bool     `db:"answered"     json:"answered"`
+	IsSeparator bool     `db:"is_separator" json:"isSeparator"`
+	Choices     []Choice `json:"choices"`
 }
 
 type Choice struct {

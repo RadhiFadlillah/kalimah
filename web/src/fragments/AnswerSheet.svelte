@@ -1,17 +1,12 @@
 <script lang="ts" context="module">
-	export interface Choice {
-		text: string;
-		isCorrect: boolean;
-	}
 </script>
 
 <script lang="ts">
 	// Import functions
-	import { onMount, createEventDispatcher } from 'svelte';
-	import { getRequest, postRequest } from '../libs/api-request';
+	import { createEventDispatcher } from 'svelte';
+	import { postRequest } from '../libs/api-request';
 	import LoadingCover from '../components/LoadingCover.svelte';
-	import type { Word } from './Surah.svelte';
-	import { text } from 'svelte/internal';
+	import type { Word, Choice } from './Surah.svelte';
 	const dispatch = createEventDispatcher();
 
 	// Props
@@ -20,36 +15,17 @@
 	export { className as class };
 
 	// Local variables
-	let choices: Choice[] = [];
 	let wrongChoices: string[] = [];
 	let dataLoading: boolean = false;
 
 	// API function
-	async function loadChoices(word?: Word) {
+	async function submitAnswer(choice: Choice, word?: Word) {
 		if (word == null || dataLoading) return;
 
-		wrongChoices = [];
-		dataLoading = true;
-
-		try {
-			choices = await getRequest(`/api/choice/${word?.id}`);
-		} catch (err) {
-			dispatch('error', String(err));
-			choices = [];
-		}
-
-		dataLoading = false;
-	}
-
-	async function submitAnswer(choice: Choice) {
-		if (word == null || dataLoading) return;
-
-		// If choice is incorrect, stop and reload choices if necessary
+		// If choice is incorrect, stop
 		if (!choice.isCorrect) {
 			wrongChoices = [...wrongChoices, choice.text];
-			if (wrongChoices.length >= 5) {
-				await loadChoices(word);
-			}
+			if (wrongChoices.length >= 5) wrongChoices = [];
 			return;
 		}
 
@@ -69,23 +45,22 @@
 			if (errorOccured) return;
 		}
 
-		dispatch('submit', { answer: choice.text });
+		dispatch('answered');
 	}
 
-	// Lifecycle function
-	onMount(() => loadChoices(word));
-
-	// Reload data whenever word changed
-	$: loadChoices(word);
+	$: {
+		word;
+		(document.activeElement as HTMLElement).blur();
+	}
 </script>
 
 <div class="root {className}">
 	<p class="arabic">{word?.arabic}</p>
 	<div class="container">
-		{#each choices as choice}
+		{#each word?.choices || [] as choice}
 			<button
 				class:wrong={wrongChoices.includes(choice.text)}
-				on:click={() => submitAnswer(choice)}
+				on:click={() => submitAnswer(choice, word)}
 				>{choice.text}
 			</button>
 		{/each}

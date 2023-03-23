@@ -7,7 +7,10 @@ import (
 	"io/fs"
 	"io/ioutil"
 	"kalimah/internal/backend/middleware"
+	"math"
+	"math/rand"
 	"net/http"
+	"sort"
 	"strconv"
 	"time"
 
@@ -31,9 +34,8 @@ func (s *Server) Serve(port int) error {
 	router.GET("/res/*filepath", s.ServeFile)
 	router.GET("/build/*filepath", s.ServeFile)
 	router.GET("/api/surah", s.GetSurah)
-	router.GET("/api/words/surah/:surah", s.GetWords)
-	router.GET("/api/tafsir/:surah/ayah/:ayah", s.GetTafsir)
-	router.GET("/api/choice/:word-id", s.GetChoices)
+	router.GET("/api/words/surah/:surah/page/:page", s.GetWords)
+	router.GET("/api/tafsir/surah/:surah/ayah/:ayah", s.GetTafsir)
 	router.POST("/api/track", s.TrackWord)
 
 	router.PanicHandler = func(w http.ResponseWriter, r *http.Request, arg interface{}) {
@@ -133,26 +135,110 @@ func (s *Server) GetWords(w http.ResponseWriter, r *http.Request, ps httprouter.
 		}
 	}()
 
+	// Parse URL params
+	page, _ := strconv.Atoi(ps.ByName("page"))
 	surah, _ := strconv.Atoi(ps.ByName("surah"))
 
-	words := []Word{}
-	err = s.DB.Select(&words,
-		`WITH last_word AS (
-			SELECT IFNULL(last_word, 0) id FROM tracker WHERE id = 1),
-		ayah_range AS (
-			SELECT start, end FROM surah WHERE id = ?)
-		SELECT w.id, w.ayah-ar.start+1 ayah, w.position, w.arabic,
-			IIF(w.id <= lw.id, translation, '') translation,
-			w.ayah <> LEAD(w.ayah, 1, w.ayah+1) OVER (ORDER BY w.ayah) is_separator
-		FROM word w, ayah_range ar, last_word lw
-		WHERE w.ayah >= ar.start AND w.ayah <= ar.end
-		ORDER BY w.id`, surah)
+	// Prepare read only transaction
+	tx, err := s.DB.Beginx()
+	if err != nil {
+		return
+	}
+	defer tx.Rollback()
+
+	// Fetch ayah count for this surah
+	var nAyah int
+	err = tx.Get(&nAyah, `SELECT end-start+1 FROM surah WHERE id = ?`, surah)
 	if err != nil && err != sql.ErrNoRows {
 		return
 	}
 
+	// Adjust pagination
+	nAyahPerPage := 30
+	maxPage := int(math.Ceil(float64(nAyah) / float64(nAyahPerPage)))
+	if page < 1 {
+		page = 1
+	} else if page > maxPage {
+		page = maxPage
+	}
+
+	// Fetch words for this page
+	words := []Word{}
+	err = tx.Select(&words,
+		`WITH last_word AS (
+			SELECT IFNULL(last_word, 0) id FROM tracker WHERE id = 1),
+		ayah_range AS (
+			SELECT (30*(?-1) + 1) start, MIN(end, 30*?) end 
+			FROM surah
+			WHERE id = ?)
+		SELECT w.id, w.ayah-ar.start+1 ayah, w.position,
+			w.arabic, w.translation, w.id <= lw.id answered,
+			w.ayah <> LEAD(w.ayah, 1, w.ayah+1) OVER (ORDER BY w.ayah) is_separator
+		FROM word w, ayah_range ar, last_word lw
+		WHERE w.ayah >= ar.start AND w.ayah <= ar.end
+		ORDER BY w.id`, page, page, surah)
+	if err != nil && err != sql.ErrNoRows {
+		return
+	}
+
+	// Fetch choice candidate
+	var choiceCandidates []string
+	err = tx.Select(&choiceCandidates,
+		`SELECT DISTINCT w.translation FROM word w
+		ORDER BY RANDOM() LIMIT ?`, len(words)*5)
+	if err != nil {
+		return
+	}
+
+	// Apply choice to each word
+	nCandidates := len(choiceCandidates)
+	for i, word := range words {
+		// Prepare choices for this word
+		choices := make([]Choice, 10)
+		choices[0] = Choice{Text: word.Translation, IsCorrect: true}
+
+		// Fetch incorrect choice randomly
+		usedCandidateIdx := map[int]struct{}{}
+		for j := 0; j < 9; j++ {
+			var candidateIdx int
+
+			// Make sure candidate is unused and not correct
+			for {
+				candidateIdx = rand.Intn(nCandidates)
+				_, candidateIsUsed := usedCandidateIdx[candidateIdx]
+				candidateIsCorrect := choiceCandidates[candidateIdx] == word.Translation
+				if !candidateIsUsed && !candidateIsCorrect {
+					break
+				}
+			}
+
+			// Save the candidate
+			usedCandidateIdx[candidateIdx] = struct{}{}
+			choices[j+1] = Choice{Text: choiceCandidates[candidateIdx], IsCorrect: false}
+		}
+
+		// Sort the choices
+		sort.Slice(choices, func(i, j int) bool {
+			return choices[i].Text < choices[j].Text
+		})
+
+		// Apply choices to word
+		words[i].Choices = choices
+	}
+
+	// Create return data
+	data := struct {
+		CurrentPage int    `json:"currentPage"`
+		MaxPage     int    `json:"maxPage"`
+		Words       []Word `json:"words"`
+	}{
+		CurrentPage: page,
+		MaxPage:     maxPage,
+		Words:       words,
+	}
+
 	w.Header().Add("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(&words)
+	err = json.NewEncoder(w).Encode(&data)
 }
 
 func (s *Server) GetTafsir(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
@@ -189,43 +275,6 @@ func (s *Server) GetTafsir(w http.ResponseWriter, r *http.Request, ps httprouter
 
 	w.Header().Add("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(&data)
-}
-
-func (s *Server) GetChoices(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	var err error
-	defer func() {
-		if err != nil {
-			http.Error(w, err.Error(), 500)
-		}
-	}()
-
-	strWordId := ps.ByName("word-id")
-	wordId, _ := strconv.Atoi(strWordId)
-
-	choices := []Choice{}
-	err = s.DB.Select(&choices,
-		`WITH correct_answer AS (
-			SELECT translation
-			FROM word w
-			WHERE id = ?),
-		wrong_answer AS (
-			SELECT DISTINCT w.translation 
-			FROM word w, correct_answer cw
-			WHERE w.translation NOT LIKE "%"||cw.translation||"%"
-			ORDER BY RANDOM()
-			LIMIT 9),
-		all_answer AS (
-			SELECT translation text, 1 is_correct FROM correct_answer
-			UNION ALL
-			SELECT translation text, 0 is_correct FROM wrong_answer)
-		SELECT text, is_correct FROM all_answer 
-		ORDER BY LOWER(text)`, wordId)
-	if err != nil && err != sql.ErrNoRows {
-		return
-	}
-
-	w.Header().Add("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(&choices)
 }
 
 func (s *Server) TrackWord(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {

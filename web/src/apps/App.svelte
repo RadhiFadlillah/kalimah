@@ -20,7 +20,6 @@
 
 	// Local variables
 	let surahRef: Surah;
-	let surahTitle: string;
 	let activeSurah: TSurah | undefined;
 	let activeWord: TWord | undefined;
 
@@ -34,7 +33,7 @@
 	let dlgErrorMessage: string = '';
 
 	// Reactive variables
-	$: headerTitle = activeSurah ? surahTitle : 'Daftar Surah';
+	$: headerTitle = activeSurah ? activeSurah.name : 'Daftar Surah';
 
 	// Lifecycle function
 	onMount(() => {
@@ -56,9 +55,8 @@
 	}
 
 	// Event handler for answer sheet
-	function handleAnswerSubmit(e: CustomEvent) {
-		let answer = e.detail.answer;
-		surahRef?.saveTranslation(activeWord, answer);
+	function handleAnswerSubmit() {
+		surahRef?.markAnswered(activeWord);
 	}
 
 	// Event handler for translation
@@ -98,7 +96,6 @@
 			class="surah"
 			surah={activeSurah}
 			bind:activeWord
-			bind:title={surahTitle}
 			on:ayahclick={handleSurahAyahClick}
 			on:error={handleFragmentError}
 		/>
@@ -106,7 +103,7 @@
 			<AnswerSheet
 				class="answer"
 				word={activeWord}
-				on:submit={handleAnswerSubmit}
+				on:answered={handleAnswerSubmit}
 				on:error={handleFragmentError}
 			/>
 		{/if}

@@ -6,13 +6,26 @@
 		translated: boolean;
 	}
 
+	export interface Choice {
+		text: string;
+		isCorrect: boolean;
+	}
+
 	export interface Word {
 		id: number;
 		ayah: number;
 		position: number;
 		arabic: string;
 		translation: string;
+		answered: boolean;
 		isSeparator: boolean;
+		choices: Choice[];
+	}
+
+	interface FetchResponse {
+		currentPage: number;
+		maxPage: number;
+		words: Word[];
 	}
 </script>
 
@@ -26,44 +39,21 @@
 	let className: string = '';
 	export { className as class };
 	export let surah: Surah | undefined;
-	export let title: string = '';
 	export let activeWord: Word | undefined = undefined;
 
 	// Constants
-	const ayahPerPage = 30;
 	const arabicNumerals = '٠١٢٣٤٥٦٧٨٩';
 
 	// Local variables
 	let words: Word[] = [];
-	let pageCount: number;
-	let currentPage: number;
+	let maxPage: number;
+	let currentPage: number = 1;
 	let container: HTMLElement;
 	let dataLoading: boolean = false;
 
 	// Reactive variables
-	$: visibleWords = words.filter((w) => {
-		let startingAyah = (currentPage - 1) * ayahPerPage + 1;
-		let endingAyah = currentPage * ayahPerPage;
-		return w.ayah >= startingAyah && w.ayah <= endingAyah;
-	});
-
 	$: {
-		// Adjust title
-		if (surah == null) title = '';
-		else if (dataLoading) title = surah!.name;
-		else {
-			let surahName = surah!.name;
-			let nWords = words.length;
-			let nTranslatedWords = words.filter((w) => w.translation !== '').length;
-			let progress = Math.round((nTranslatedWords / nWords) * 100) || 0;
-			title = `(${progress}%) • ${surahName} • ${nTranslatedWords} / ${nWords}`;
-		}
-	}
-
-	$: {
-		// Get active word
-		let realActiveWord = words.find((w) => w.translation === '');
-		activeWord = visibleWords.find((w) => w.id === realActiveWord?.id);
+		activeWord = words.find((w) => !w.answered);
 	}
 
 	// API function
@@ -72,15 +62,11 @@
 		dataLoading = true;
 
 		try {
-			words = await getRequest(`/api/words/surah/${surah}`);
-			let maxAyah: number = words
-				.map((w: Word) => w.ayah)
-				.reduce((p, c) => (p > c ? p : c), 1);
-			let realActiveWord = words.find((w) => w.translation === '');
+			let url = `/api/words/surah/${surah}/page/${currentPage}`;
+			let resp = (await getRequest(url)) as FetchResponse;
 
-			pageCount = Math.ceil(maxAyah / ayahPerPage);
-			if (realActiveWord == null) currentPage = 1;
-			else currentPage = Math.ceil(realActiveWord.ayah / ayahPerPage);
+			maxPage = resp.maxPage;
+			words = resp.words;
 
 			await tick();
 			focusToActive();
@@ -114,7 +100,7 @@
 			focusToActive();
 		} else if (e.key === '-' && currentPage > 1) {
 			handlePagination(currentPage - 1);
-		} else if (e.key === '+' && currentPage < pageCount) {
+		} else if (e.key === '+' && currentPage < maxPage) {
 			handlePagination(currentPage + 1);
 		}
 	}
@@ -129,22 +115,22 @@
 	}
 
 	// Exported function
-	export function saveTranslation(word: Word | undefined, translation: string) {
+	export function markAnswered(word: Word | undefined) {
 		if (word == null) return;
 
 		let idx = words.findIndex((w) => w.id === word.id);
-		if (idx >= 0) words[idx].translation = translation;
+		if (idx >= 0) words[idx].answered = true;
 
 		let next = word.id + 1;
-		let nextIsVisible = visibleWords.findIndex((w) => w.id === next) >= 0;
-		if (!nextIsVisible && currentPage < pageCount) {
+		let nextIsVisible = words.findIndex((w) => w.id === next) >= 0;
+		if (!nextIsVisible && currentPage < maxPage) {
 			currentPage++;
 		}
 
 		tick().then(() => focusToActive());
 	}
 
-	// Reload data whenever surah changed
+	// Reload data whenever surah or page changed
 	$: loadData(surah?.id);
 </script>
 
@@ -156,22 +142,22 @@
 		bind:this={container}
 		on:keydown={handleKeydown}
 	>
-		{#each visibleWords as word, idx (word.id)}
+		{#each words as word (word.id)}
 			<div
 				class="item"
 				tabindex="0"
 				role="button"
 				class:active={word.id === activeWord?.id}
-				aria-disabled={word.translation === ''}
+				aria-disabled={!word.answered}
 			>
 				<p class="arabic">{word.arabic}</p>
-				<p class="translation">{word.translation}</p>
+				<p class="translation">{word.answered ? word.translation : ''}</p>
 			</div>
 
 			{#if word.isSeparator}
 				<button
 					class="number"
-					disabled={word.translation === ''}
+					disabled={!word.answered}
 					on:click={() => handleAyahClick(word.ayah)}
 				>
 					{toArabicNumeral(word.ayah)}
@@ -179,9 +165,9 @@
 			{/if}
 		{/each}
 	</div>
-	{#if pageCount > 1}
+	{#if maxPage > 1}
 		<div class="footer">
-			{#each [...Array(pageCount).keys()].map((k) => k + 1) as page}
+			{#each [...Array(maxPage).keys()].map((k) => k + 1) as page}
 				<button
 					on:click={() => handlePagination(page)}
 					class:active={page === currentPage}

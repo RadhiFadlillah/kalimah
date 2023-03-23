@@ -26,7 +26,7 @@
 		dataLoading = true;
 
 		try {
-			data = await getRequest(`/api/tafsir/${surah}/ayah/${ayah}`);
+			data = await getRequest(`/api/tafsir/surah/${surah}/ayah/${ayah}`);
 		} catch (err) {
 			dispatch('error', String(err));
 		}
@@ -46,9 +46,9 @@
 	on:mainclick
 >
 	<div slot="content" class="tafsir-content">
-		<p class="arabic">{data?.arabic}</p>
-		<div class="trans">{@html data?.translation}</div>
-		<div class="trans">{@html data?.tafsir}</div>
+		<p class="arabic">{data?.arabic || ''}</p>
+		<div class="trans">{@html data?.translation || ''}</div>
+		<div class="trans">{@html data?.tafsir || ''}</div>
 	</div>
 </Dialog>
 
