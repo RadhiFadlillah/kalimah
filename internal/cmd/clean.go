@@ -15,6 +15,10 @@ func cleanCmd() *cobra.Command {
 }
 
 func cleanCmdHandler(cmd *cobra.Command, args []string) error {
+	// Close database
+	db.Close()
+
+	// Remove files
 	dbPath, err := getDBPath()
 	if err != nil {
 		return err

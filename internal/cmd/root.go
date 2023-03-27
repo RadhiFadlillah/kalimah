@@ -29,7 +29,7 @@ func RootCmd(assetsFs fs.FS) *cobra.Command {
 		PersistentPostRunE: postRunHandler,
 	}
 
-	rootCmd.AddCommand(startCmd(), initCmd(), cleanCmd())
+	rootCmd.AddCommand(startCmd(), initCmd(), cleanCmd(), markCmd())
 	return rootCmd
 }
 
