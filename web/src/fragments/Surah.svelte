@@ -155,7 +155,9 @@
 				aria-disabled={!word.answered}
 			>
 				<p class="arabic">{word.arabic}</p>
-				<p class="translation">{word.answered ? word.translation : ''}</p>
+				<p class="translation" class:unanswered={!word.answered}>
+					{word.translation}
+				</p>
 			</div>
 
 			{#if word.isSeparator}
@@ -235,7 +237,6 @@
 			flex-flow: column nowrap;
 			margin: 8px;
 			padding: 8px;
-			cursor: pointer;
 
 			p.arabic {
 				font-size: 3rem;
@@ -249,20 +250,14 @@
 				font-size: 0.9rem;
 				color: var(--fg-secondary);
 				text-align: center;
-			}
 
-			&:hover,
-			&:focus {
-				background-color: var(--bg-hover);
-			}
-
-			&[aria-disabled='true'] {
-				pointer-events: none;
-				cursor: default;
-
-				p {
-					color: var(--fg-disabled);
+				&.unanswered {
+					visibility: hidden;
 				}
+			}
+
+			&[aria-disabled='true'] p {
+				color: var(--fg-disabled);
 			}
 
 			&.active {

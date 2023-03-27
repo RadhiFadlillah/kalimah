@@ -105,8 +105,7 @@
 			border-radius: 8px;
 			cursor: pointer;
 
-			&:hover,
-			&:focus {
+			&:hover {
 				background-color: var(--bg-hover);
 			}
 
