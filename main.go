@@ -3,8 +3,8 @@ package main
 import (
 	"kalimah/internal/cmd"
 
+	_ "github.com/mattn/go-sqlite3"
 	"github.com/sirupsen/logrus"
-	_ "modernc.org/sqlite"
 )
 
 func main() {

@@ -12,12 +12,12 @@ import (
 func Open(dbPath string) (db *sqlx.DB, err error) {
 	// Prepare DSN
 	q := url.Values{}
-	q.Add("_pragma", "foreign_keys=1")
-	q.Add("_pragma", "journal_mode=WAL")
+	q.Add("_foreign_keys", "1")
+	q.Add("_journal_mode", "WAL")
 	dsn := dbPath + "?" + q.Encode()
 
 	// Connect to database
-	db, err = sqlx.Connect("sqlite", dsn)
+	db, err = sqlx.Connect("sqlite3", dsn)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open database: %v", err)
 	}
