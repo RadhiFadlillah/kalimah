@@ -113,7 +113,6 @@
 
 			&.wrong {
 				color: var(--bg);
-				background-color: var(--fg);
 				cursor: pointer;
 				pointer-events: none;
 			}
