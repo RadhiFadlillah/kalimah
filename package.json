@@ -16,6 +16,7 @@
 	"scripts": {
 		"web": "node build.esbuild.mjs",
 		"web-dev": "node build.esbuild.mjs dev",
+		"go": "go build -tags sqlite_math_functions -o kalimah",
 		"go-dev": "go build -tags dev,sqlite_math_functions -o kalimah-dev && ./kalimah-dev start",
 		"build": "node build.esbuild.mjs && go build -tags sqlite_math_functions -o kalimah",
 		"build-dev": "node build.esbuild.mjs && go build -tags dev,sqlite_math_functions -o kalimah-dev"
