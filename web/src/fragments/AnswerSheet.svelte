@@ -97,7 +97,7 @@
 			font-size: 1.1rem;
 			padding: 16px;
 			color: var(--fg);
-			background-color: transparent;
+			background-color: var(--bg);
 			outline: 1px solid var(--border);
 			font-variation-settings: 'wght' 600;
 			cursor: pointer;
@@ -105,8 +105,15 @@
 			overflow: hidden;
 			text-overflow: ellipsis;
 
+			&:active,
+			&:focus {
+				color: var(--fg);
+				background-color: var(--bg);
+			}
+
 			&.wrong {
-				background-color: var(--bg-error);
+				color: var(--bg);
+				background-color: var(--fg);
 				cursor: pointer;
 				pointer-events: none;
 			}
