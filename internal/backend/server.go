@@ -212,12 +212,12 @@ func (s *Server) GetWords(w http.ResponseWriter, r *http.Request, ps httprouter.
 	nCandidates := len(choiceCandidates)
 	for i, word := range words {
 		// Prepare choices for this word
-		choices := make([]Choice, 10)
+		choices := make([]Choice, 8)
 		choices[0] = Choice{Text: word.Translation, IsCorrect: true}
 
 		// Fetch incorrect choice randomly
 		usedCandidateIdx := map[int]struct{}{}
-		for j := 0; j < 9; j++ {
+		for j := 0; j < 7; j++ {
 			var candidateIdx int
 
 			// Make sure candidate is unused and not correct

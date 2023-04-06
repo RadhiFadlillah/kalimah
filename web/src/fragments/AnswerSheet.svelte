@@ -73,15 +73,14 @@
 <style lang="less">
 	div.root {
 		display: flex;
-		flex-flow: row nowrap;
+		flex-flow: column nowrap;
 		background-color: var(--bg);
-		align-items: center;
 		position: relative;
 	}
 
 	p.arabic {
-		padding: 16px;
-		font-size: 4rem;
+		padding: 8px;
+		font-size: 3rem;
 		font-family: 'KFGQPC-HAFS';
 		text-align: center;
 		color: var(--main);
@@ -89,25 +88,24 @@
 	}
 
 	div.container {
-		display: flex;
 		flex: 1 0;
-		flex-flow: row wrap;
-		align-content: center;
-		padding: 8px;
+		display: grid;
+		gap: 1px;
+		grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
 
 		button {
 			font-size: 1.1rem;
-			padding: 8px;
-			margin: 4px;
+			padding: 16px;
 			color: var(--fg);
 			background-color: transparent;
-			border: 1px solid var(--border);
-			border-radius: 8px;
+			outline: 1px solid var(--border);
 			font-variation-settings: 'wght' 600;
 			cursor: pointer;
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
 
 			&.wrong {
-				color: var(--fg-error);
 				background-color: var(--bg-error);
 				cursor: pointer;
 				pointer-events: none;
@@ -117,20 +115,5 @@
 
 	div.root :global(.answer-loading) {
 		position: absolute;
-	}
-
-	@media screen and (max-width: 600px) {
-		div.root {
-			flex-flow: column nowrap;
-		}
-
-		p.arabic {
-			font-size: 3rem;
-			padding-bottom: 0;
-		}
-
-		div.container {
-			justify-content: center;
-		}
 	}
 </style>

@@ -208,7 +208,6 @@
 	// Conditional styling
 	.dialog.error {
 		.header {
-			color: var(--fg-error);
 			background-color: var(--bg-error);
 			border-top-left-radius: 8px;
 			border-top-right-radius: 8px;

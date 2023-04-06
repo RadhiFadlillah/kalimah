@@ -15,7 +15,6 @@ Colors used here taken from Tailwind palette https://tailwindcolor.com/
 
 	--fg          : #000000;  /* Black */
 	--fg-disabled : #FFFFFF;  /* White */
-	--fg-error    : #dc2626;  /* Red 600 */
 	--fg-tooltip  : #ffffff;  /* White */
 
 	--border      : #000000;  /* Black */
@@ -42,7 +41,6 @@ Colors used here taken from Tailwind palette https://tailwindcolor.com/
 	
 	--fg          : #ffffff;  /* White */
 	--fg-disabled : #000000;  /* Black */
-	--fg-error    : #fca5a5;  /* Red 300 */
 	--fg-tooltip  : #000000;  /* Black */
 	
 	--border      : #ffffff;  /* White */
