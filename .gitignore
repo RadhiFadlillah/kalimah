@@ -9,4 +9,3 @@ kalimah.db*
 
 # Exclude web dev files
 node_modules/
-web/public/build/
