@@ -5,81 +5,53 @@ Colors used here taken from Tailwind palette https://tailwindcolor.com/
 
 /* prettier-ignore */
 :root {
-	--main   : #4D7C0F; /* Lime 700 */
-	--main-bg: #ECFCCB; /* Lime 100 */
+	--main   : #000000; /* Black */
+	--main-bg: #FFFFFF; /* White */
 
 	--bg          : #ffffff;  /* White */
-	--bg-secondary: #f9fafb;  /* Cool Gray 50 */
-	--bg-disabled : #f3f4f6;  /* Cool Gray 100 */
-	--bg-hover    : #f3f4f6;  /* Cool Gray 100 */
 	--bg-error    : #fef2f2;  /* Red 50 */
-	--bg-warning  : #fefce8;  /* Yellow 50 */
-	--bg-scrollbar: #d1d5db;  /* Cool Gray 300 */
-	--bg-tooltip  : #1f2937;  /* Cool Gray 800 */
+	--bg-scrollbar: #ffffff;  /* White */
+	--bg-tooltip  : #000000;  /* Black */
 
-	--fg          : #1f2937;  /* Cool Gray 800 */
-	--fg-secondary: #52525b;  /* Cool Gray 600 */
-	--fg-disabled : #9ca3af;  /* Cool Gray 400 */
-	--fg-hover    : #24292e;  /* Cool Gray 800 */
+	--fg          : #000000;  /* Black */
+	--fg-disabled : #FFFFFF;  /* White */
 	--fg-error    : #dc2626;  /* Red 600 */
-	--fg-warning  : #ca8a04;  /* Yellow 600 */
 	--fg-tooltip  : #ffffff;  /* White */
 
-	--border          : #e5e7eb;  /* Cool Gray 200 */
-	--border-secondary: #d1d5db;  /* Cool Gray 300 */
+	--border      : #000000;  /* Black */
 	--border-focus: var(--main);
 
 	--bg-active   : var(--main-bg);
-	--bg-selection: var(--main-bg);
 	--fg-active   : var(--main);
-	--fg-selection: var(--main);
-	--fg-link     : var(--main);
 	--border-focus: var(--main);
 	--bg-overlay  : rgba(0, 0, 0, 0.5);
-	--bg-shadow   : rgba(0, 0, 0, 0.5);
 
-	--z-footer       : 800;
-	--z-tooltip      : 900;
-	--z-dropdown     : 901;
-	--z-menu         : 902;
-	--z-menu-launcher: 903;
-	--z-dialog       : 904;
+	--z-tooltip: 900;
+	--z-dialog : 904;
 }
 
 /* prettier-ignore */
 .dark {
-	--main   : #D9F99D; /* Lime 200 */
-	--main-bg: #3F6212; /* Lime 800 */
+	--main   : #FFFFFF; /* White */
+	--main-bg: #000000; /* Black */
 
 	--bg          : #000000;  /* Black */
-	--bg-secondary: #111827;  /* Cool Gray 900 */
-	--bg-disabled : #1f2937;  /* Cool Gray 800 */
-	--bg-hover    : #1f2937;  /* Cool Gray 800 */
 	--bg-error    : #7f1d1d;  /* Red 900 */
-	--bg-warning  : #713f12;  /* Yellow 900 */
-	--bg-scrollbar: #4b5563;  /* Cool Gray 600 */
-	--bg-tooltip  : #f3f4f6;  /* Cool Gray 100 */
+	--bg-scrollbar: #000000;  /* Black */
+	--bg-tooltip  : #ffffff;  /* White */
 	
-	--fg          : #f3f4f6;  /* Cool Gray 100 */
-	--fg-secondary: #d1d5db;  /* Cool Gray 300 */
-	--fg-disabled : #6b7280;  /* Cool Gray 500 */
-	--fg-hover    : #f3f4f6;  /* Cool Gray 100 */
+	--fg          : #ffffff;  /* White */
+	--fg-disabled : #000000;  /* Black */
 	--fg-error    : #fca5a5;  /* Red 300 */
-	--fg-warning  : #fde047;  /* Yellow 300 */
 	--fg-tooltip  : #000000;  /* Black */
 	
-	--border          : #374151;  /* Cool Gray 700 */
-	--border-secondary: #4b5563;  /* Cool Gray 600 */
+	--border      : #ffffff;  /* White */
 	--border-focus: var(--main);
 	
 	--bg-active   : var(--main-bg);
-	--bg-selection: var(--main-bg);
 	--fg-active   : var(--main);
-	--fg-selection: var(--main);
-	--fg-link     : var(--main);
 	--border-focus: var(--main);
 	--bg-overlay  : rgba(0, 0, 0, 0.7);
-	--bg-shadow   : rgba(0, 0, 0, 0.7);
 }
 
 /* Font */
@@ -106,18 +78,14 @@ Colors used here taken from Tailwind palette https://tailwindcolor.com/
 	font-family: 'Inter', sans-serif;
 	font-feature-settings: 'liga';
 	outline: none;
-}
-
-::selection {
-	color: var(--fg-selection);
-	background: var(--bg-selection);
+	user-select: none;
 }
 
 html {
 	font-size: 14px;
 	color: var(--fg);
 	background-color: var(--bg);
-	font-variation-settings: 'wght' 400;
+	font-variation-settings: 'wght' 600;
 }
 
 body {
@@ -126,6 +94,7 @@ body {
 	max-width: 100vw;
 	max-height: 100vh;
 	overflow: hidden;
+	font-variation-settings: 'wght' 600;
 }
 
 /* Scrollbar (we put it here in global since Svelte remove prefixed CSS) */

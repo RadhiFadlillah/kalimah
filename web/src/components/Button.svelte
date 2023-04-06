@@ -178,11 +178,6 @@
 		gap: 8px;
 		font-variation-settings: 'wght' 600;
 
-		&:hover {
-			color: var(--fg-hover);
-			background-color: var(--bg-hover);
-		}
-
 		&:focus {
 			border: 1px solid var(--border-focus);
 		}

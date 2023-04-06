@@ -209,16 +209,11 @@
 			padding: 8px;
 			margin: 8px;
 			background-color: transparent;
+			font-variation-settings: 'wght' 600;
 			cursor: pointer;
 
-			&:hover,
-			&:focus {
-				background-color: var(--bg-hover);
-			}
-
 			&.active {
-				color: var(--main);
-				background-color: var(--main-bg);
+				border: 1px solid var(--border);
 				pointer-events: none;
 				cursor: default;
 			}
@@ -237,6 +232,7 @@
 			flex-flow: column nowrap;
 			margin: 8px;
 			padding: 8px;
+			border: 1px solid transparent;
 
 			p.arabic {
 				font-size: 3rem;
@@ -248,7 +244,7 @@
 
 			p.translation {
 				font-size: 0.9rem;
-				color: var(--fg-secondary);
+				color: var(--fg);
 				text-align: center;
 
 				&.unanswered {
@@ -256,16 +252,12 @@
 				}
 			}
 
-			&[aria-disabled='true'] p {
+			&[aria-disabled='true']:not(.active) p {
 				color: var(--fg-disabled);
 			}
 
 			&.active {
-				background-color: var(--main-bg);
-
-				p {
-					color: var(--main);
-				}
+				border: 1px solid var(--border);
 			}
 		}
 
@@ -277,11 +269,6 @@
 			color: var(--main);
 			background-color: transparent;
 			cursor: pointer;
-
-			&:hover,
-			&:focus {
-				background-color: var(--bg-hover);
-			}
 
 			&[disabled] {
 				pointer-events: none;

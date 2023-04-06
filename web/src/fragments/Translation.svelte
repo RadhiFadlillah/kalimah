@@ -57,6 +57,11 @@
 		width: 850px;
 		max-width: 90vw !important;
 		max-height: 90vh !important;
+		user-select: auto !important;
+
+		:global(*) {
+			user-select: text !important;
+		}
 	}
 
 	.tafsir-content {

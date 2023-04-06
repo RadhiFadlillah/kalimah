@@ -103,11 +103,8 @@
 			background-color: transparent;
 			border: 1px solid var(--border);
 			border-radius: 8px;
+			font-variation-settings: 'wght' 600;
 			cursor: pointer;
-
-			&:focus {
-				background-color: var(--bg-hover);
-			}
 
 			&.wrong {
 				color: var(--fg-error);

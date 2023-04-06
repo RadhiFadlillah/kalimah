@@ -112,17 +112,13 @@
 
 		p.translation {
 			font-size: 0.9rem;
-			color: var(--fg-secondary);
-		}
-
-		&:hover,
-		&:focus {
-			background-color: var(--bg-hover);
+			color: var(--fg);
 		}
 
 		&[aria-disabled='true'] {
-			pointer-events: none;
 			cursor: default;
+			pointer-events: none;
+			outline-color: transparent;
 
 			p {
 				color: var(--fg-disabled);
